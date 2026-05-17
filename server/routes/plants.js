@@ -130,4 +130,33 @@ router.post('/', upload.single('photo'), async (req, res) => {
   res.status(201).json(data);
 });
 
+// DELETE /api/plants/:id — remove plant row and its Storage image
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  // Fetch image_url first so we can clean up Storage after deletion
+  const { data: plant } = await supabase
+    .from('plants')
+    .select('image_url')
+    .eq('id', id)
+    .single();
+
+  const { error } = await supabase.from('plants').delete().eq('id', id);
+  if (error) {
+    console.error('[Delete] DB error:', error.message);
+    return res.status(500).json({ error: error.message });
+  }
+
+  // Best-effort Storage cleanup — don't fail the request if this errors
+  if (plant?.image_url) {
+    const fileName = plant.image_url.split('/').pop();
+    const { error: storageError } = await supabase.storage
+      .from('plant-images')
+      .remove([fileName]);
+    if (storageError) console.error('[Delete] Storage cleanup failed:', storageError.message);
+  }
+
+  res.status(204).send();
+});
+
 module.exports = router;

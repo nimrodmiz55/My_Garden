@@ -75,7 +75,14 @@ export default function PlantShelf({ refresh }) {
       </section>
 
       {selected && (
-        <PlantModal plant={selected} onClose={() => setSelected(null)} />
+        <PlantModal
+          plant={selected}
+          onClose={() => setSelected(null)}
+          onDelete={(id) => {
+            setPlants((prev) => prev.filter((p) => p.id !== id))
+            setSelected(null)
+          }}
+        />
       )}
     </>
   )
