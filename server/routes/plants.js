@@ -48,9 +48,12 @@ router.post('/', upload.single('photo'), async (req, res) => {
 
   // 1. Send image to Gemini for species/size/watering analysis
   let analysis;
+  let rawGeminiText = null;
   try {
+    console.log('[Gemini] Sending request — mimeType:', photo.mimetype, 'size:', photo.size, 'bytes');
+
     const response = await ai.models.generateContent({
-      model: 'gemini-2.0-flash',
+      model: 'gemini-2.5-flash',
       contents: [
         {
           parts: [
@@ -67,13 +70,24 @@ router.post('/', upload.single('photo'), async (req, res) => {
       config: { responseMimeType: 'application/json' },
     });
 
-    analysis = JSON.parse(response.text);
+    rawGeminiText = response.text;
+    console.log('[Gemini] Raw response text:', rawGeminiText);
+
+    analysis = JSON.parse(rawGeminiText);
 
     if (!analysis.species || !analysis.size || !Number.isInteger(analysis.wateringIntervalDays)) {
+      console.error('[Gemini] Unexpected shape:', analysis);
       throw new Error('Unexpected Gemini response shape');
     }
+
+    console.log('[Gemini] Parsed analysis:', analysis);
   } catch (err) {
-    console.error('Gemini error:', err.message);
+    console.error('[Gemini] ERROR name    :', err.name);
+    console.error('[Gemini] ERROR message :', err.message);
+    console.error('[Gemini] ERROR status  :', err.status ?? err.statusCode ?? 'n/a');
+    console.error('[Gemini] ERROR details :', err.errorDetails ?? err.body ?? 'n/a');
+    console.error('[Gemini] Raw text was  :', rawGeminiText);
+    console.error('[Gemini] Full error    :', err);
     return res.status(502).json({ error: 'Failed to analyze plant image. Please try again.' });
   }
 
