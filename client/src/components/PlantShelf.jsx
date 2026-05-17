@@ -103,6 +103,12 @@ export default function PlantShelf({ refresh }) {
             setPlants((prev) => prev.filter((p) => p.id !== id))
             setSelected(null)
           }}
+          onWater={(id, newDate) => {
+            setPlants((prev) =>
+              prev.map((p) => p.id === id ? { ...p, last_watered_date: newDate } : p)
+            )
+            setSelected(null)
+          }}
         />
       )}
     </>

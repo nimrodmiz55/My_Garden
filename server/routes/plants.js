@@ -159,4 +159,24 @@ router.delete('/:id', async (req, res) => {
   res.status(204).send();
 });
 
+// PATCH /api/plants/:id/water — record that plant was watered today
+router.patch('/:id/water', async (req, res) => {
+  const { id } = req.params;
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD UTC
+
+  const { data, error } = await supabase
+    .from('plants')
+    .update({ last_watered_date: today })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[Water] DB error:', error.message);
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json(data);
+});
+
 module.exports = router;
