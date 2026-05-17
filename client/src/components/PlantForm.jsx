@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import './PlantForm.css'
 
-export default function PlantForm() {
+export default function PlantForm({ onSuccess }) {
   const [photo, setPhoto] = useState(null)
   const [preview, setPreview] = useState(null)
   const [nickname, setNickname] = useState('')
@@ -36,7 +36,8 @@ export default function PlantForm() {
       const res = await fetch('/api/plants', { method: 'POST', body: formData })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Upload failed')
-      setStatus({ ok: true, message: `"${data.nickname}" added successfully!` })
+      setStatus({ ok: true, message: `"${data.nickname}" added to your garden!` })
+      setTimeout(() => onSuccess?.(data), 1200)
     } catch (err) {
       setStatus({ ok: false, message: err.message })
     } finally {
@@ -93,7 +94,7 @@ export default function PlantForm() {
       </label>
 
       <button type="submit" disabled={loading}>
-        {loading ? 'Uploading…' : 'Add Plant'}
+        {loading ? 'Analyzing…' : 'Add Plant'}
       </button>
 
       {status && (
