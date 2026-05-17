@@ -13,16 +13,32 @@ function fmt(dateStr) {
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export default function PlantModal({ plant, onClose, onDelete }) {
-  const [confirming, setConfirming] = useState(false)
-  const [deleting, setDeleting]     = useState(false)
-  const [deleteError, setDeleteError] = useState(null)
+export default function PlantModal({ plant, onClose, onDelete, onWater }) {
+  const [confirming,   setConfirming]   = useState(false)
+  const [deleting,     setDeleting]     = useState(false)
+  const [deleteError,  setDeleteError]  = useState(null)
+  const [watering,     setWatering]     = useState(false)
+  const [waterError,   setWaterError]   = useState(null)
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
+
+  async function handleWater() {
+    setWatering(true)
+    setWaterError(null)
+    try {
+      const res = await fetch(`/api/plants/${plant.id}/water`, { method: 'PATCH' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Update failed')
+      onWater(plant.id, data.last_watered_date)
+    } catch (err) {
+      setWaterError(err.message)
+      setWatering(false)
+    }
+  }
 
   async function handleDelete() {
     setDeleting(true)
@@ -71,12 +87,27 @@ export default function PlantModal({ plant, onClose, onDelete }) {
         </dl>
 
         <div className="modal-footer">
-          {deleteError && <p className="delete-error">{deleteError}</p>}
+          {(deleteError || waterError) && (
+            <p className="footer-error">{deleteError || waterError}</p>
+          )}
 
           {!confirming ? (
-            <button className="btn-delete" onClick={() => setConfirming(true)}>
-              Delete Plant
-            </button>
+            <div className="footer-actions">
+              <button
+                className="btn-water"
+                onClick={handleWater}
+                disabled={watering || deleting}
+              >
+                {watering ? 'Updating…' : '💧 Just Watered'}
+              </button>
+              <button
+                className="btn-delete"
+                onClick={() => setConfirming(true)}
+                disabled={watering}
+              >
+                Delete
+              </button>
+            </div>
           ) : (
             <div className="delete-confirm">
               <span>Remove &ldquo;{plant.nickname}&rdquo;?</span>

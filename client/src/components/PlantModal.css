@@ -101,12 +101,12 @@
 .size-medium { background: #74c69d; color: #1b4332; }
 .size-large  { background: #40916c; color: #fff;    }
 
-/* ── Delete section ─────────────────────────────── */
+/* ── Footer ─────────────────────────────────────── */
 .modal-footer {
   margin-top: 20px;
 }
 
-.delete-error {
+.footer-error {
   font-size: 0.85rem;
   color: #9b1c1c;
   background: #ffe5e5;
@@ -115,9 +115,32 @@
   margin: 0 0 10px;
 }
 
-.btn-delete {
-  width: 100%;
+/* Side-by-side action row */
+.footer-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* 💧 Just Watered — filled blue */
+.btn-water {
+  flex: 1;
   padding: 10px;
+  background: #0284c7;
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) { background: #0369a1; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
+/* Delete — outlined red, narrower than water button */
+.btn-delete {
+  padding: 10px 14px;
   background: none;
   border: 1.5px solid #fca5a5;
   border-radius: 8px;
@@ -126,11 +149,13 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
 
-  &:hover {
+  &:hover:not(:disabled) {
     background: #fff1f1;
     border-color: #dc2626;
   }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 .delete-confirm {
