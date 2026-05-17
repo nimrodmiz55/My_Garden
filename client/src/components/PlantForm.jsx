@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { API_BASE } from '../lib/api'
 import './PlantForm.css'
 
 export default function PlantForm({ onSuccess, email }) {
@@ -34,7 +35,7 @@ export default function PlantForm({ onSuccess, email }) {
     setStatus(null)
 
     try {
-      const res = await fetch('/api/plants', { method: 'POST', body: formData })
+      const res = await fetch(`${API_BASE}/api/plants`, { method: 'POST', body: formData })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Upload failed')
       setStatus({ ok: true, message: `"${data.nickname}" added to your garden!` })

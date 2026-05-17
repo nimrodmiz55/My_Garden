@@ -8,7 +8,10 @@ require('./scheduler');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors({ origin: 'http://localhost:5173' }));
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((o) => o.trim())
+  : ['http://localhost:5173'];
+app.use(cors({ origin: allowedOrigins }));
 app.use(express.json());
 
 app.get('/api/health', (req, res) => {

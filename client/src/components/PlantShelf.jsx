@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import PlantModal from './PlantModal'
+import { API_BASE } from '../lib/api'
 import './PlantShelf.css'
 
 // Each plant breathes at a slightly different pace so they never all peak together
@@ -55,7 +56,7 @@ export default function PlantShelf({ refresh, email }) {
 
   useEffect(() => {
     setLoading(true)
-    fetch(`/api/plants?email=${encodeURIComponent(email)}`)
+    fetch(`${API_BASE}/api/plants?email=${encodeURIComponent(email)}`)
       .then((r) => {
         if (!r.ok) throw new Error('Could not load plants')
         return r.json()

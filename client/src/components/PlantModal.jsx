@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { API_BASE } from '../lib/api'
 import './PlantModal.css'
 
 function addDays(dateStr, days) {
@@ -30,7 +31,7 @@ export default function PlantModal({ plant, onClose, onDelete, onWater }) {
     setWatering(true)
     setWaterError(null)
     try {
-      const res = await fetch(`/api/plants/${plant.id}/water`, { method: 'PATCH' })
+      const res = await fetch(`${API_BASE}/api/plants/${plant.id}/water`, { method: 'PATCH' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Update failed')
       onWater(plant.id, data.last_watered_date)
@@ -44,7 +45,7 @@ export default function PlantModal({ plant, onClose, onDelete, onWater }) {
     setDeleting(true)
     setDeleteError(null)
     try {
-      const res = await fetch(`/api/plants/${plant.id}`, { method: 'DELETE' })
+      const res = await fetch(`${API_BASE}/api/plants/${plant.id}`, { method: 'DELETE' })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.error || 'Delete failed')
