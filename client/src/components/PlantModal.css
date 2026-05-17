@@ -100,3 +100,84 @@
 .size-small  { background: #b7e4c7; color: #1b4332; }
 .size-medium { background: #74c69d; color: #1b4332; }
 .size-large  { background: #40916c; color: #fff;    }
+
+/* ── Delete section ─────────────────────────────── */
+.modal-footer {
+  margin-top: 20px;
+}
+
+.delete-error {
+  font-size: 0.85rem;
+  color: #9b1c1c;
+  background: #ffe5e5;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 0 0 10px;
+}
+
+.btn-delete {
+  width: 100%;
+  padding: 10px;
+  background: none;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  color: #dc2626;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover {
+    background: #fff1f1;
+    border-color: #dc2626;
+  }
+}
+
+.delete-confirm {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  span {
+    font-size: 0.9rem;
+    color: #374151;
+    text-align: center;
+  }
+}
+
+.delete-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-cancel-delete {
+  flex: 1;
+  padding: 10px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) { background: #e5e7eb; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-confirm-delete {
+  flex: 1;
+  padding: 10px;
+  background: #dc2626;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) { background: #b91c1c; }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}

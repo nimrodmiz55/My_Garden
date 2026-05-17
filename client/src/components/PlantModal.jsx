@@ -1,8 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import './PlantModal.css'
 
 function addDays(dateStr, days) {
-  // Parse as local date to avoid timezone shifting
   const [y, m, d] = dateStr.split('-').map(Number)
   const date = new Date(y, m - 1, d)
   date.setDate(date.getDate() + days)
@@ -14,12 +13,33 @@ function fmt(dateStr) {
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export default function PlantModal({ plant, onClose }) {
+export default function PlantModal({ plant, onClose, onDelete }) {
+  const [confirming, setConfirming] = useState(false)
+  const [deleting, setDeleting]     = useState(false)
+  const [deleteError, setDeleteError] = useState(null)
+
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
+
+  async function handleDelete() {
+    setDeleting(true)
+    setDeleteError(null)
+    try {
+      const res = await fetch(`/api/plants/${plant.id}`, { method: 'DELETE' })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(body.error || 'Delete failed')
+      }
+      onDelete(plant.id)
+    } catch (err) {
+      setDeleteError(err.message)
+      setDeleting(false)
+      setConfirming(false)
+    }
+  }
 
   const nextWatering = addDays(plant.last_watered_date, plant.watering_interval_days)
 
@@ -49,6 +69,36 @@ export default function PlantModal({ plant, onClose }) {
             <dd>{nextWatering}</dd>
           </div>
         </dl>
+
+        <div className="modal-footer">
+          {deleteError && <p className="delete-error">{deleteError}</p>}
+
+          {!confirming ? (
+            <button className="btn-delete" onClick={() => setConfirming(true)}>
+              Delete Plant
+            </button>
+          ) : (
+            <div className="delete-confirm">
+              <span>Remove &ldquo;{plant.nickname}&rdquo;?</span>
+              <div className="delete-confirm-actions">
+                <button
+                  className="btn-cancel-delete"
+                  onClick={() => setConfirming(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn-confirm-delete"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting…' : 'Yes, delete'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
