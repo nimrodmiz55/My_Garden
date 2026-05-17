@@ -91,7 +91,24 @@ router.post('/', upload.single('photo'), async (req, res) => {
     return res.status(502).json({ error: 'Failed to analyze plant image. Please try again.' });
   }
 
-  // 2. Persist to Supabase (image_url left null — wire up Supabase Storage when ready)
+  // 2. Upload photo to Supabase Storage
+  let imageUrl = null;
+  const fileExt = (photo.originalname.split('.').pop() || 'jpg').toLowerCase();
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
+
+  const { error: storageError } = await supabase.storage
+    .from('plant-images')
+    .upload(fileName, photo.buffer, { contentType: photo.mimetype, upsert: false });
+
+  if (storageError) {
+    console.error('[Storage] Upload failed (continuing without image):', storageError.message);
+  } else {
+    const { data: urlData } = supabase.storage.from('plant-images').getPublicUrl(fileName);
+    imageUrl = urlData.publicUrl;
+    console.log('[Storage] Uploaded:', imageUrl);
+  }
+
+  // 3. Persist to Supabase
   const { data, error } = await supabase
     .from('plants')
     .insert({
@@ -100,7 +117,7 @@ router.post('/', upload.single('photo'), async (req, res) => {
       species: analysis.species,
       size: analysis.size,
       watering_interval_days: analysis.wateringIntervalDays,
-      image_url: null,
+      image_url: imageUrl,
     })
     .select()
     .single();

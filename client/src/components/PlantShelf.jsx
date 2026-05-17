@@ -2,34 +2,39 @@ import { useEffect, useState } from 'react'
 import PlantModal from './PlantModal'
 import './PlantShelf.css'
 
-// Leaf-cluster colors cycling per card
-const LEAF_COLORS = ['#52b788', '#40916c', '#74c69d', '#2d6a4f', '#95d5b2', '#1b4332']
+// Each plant breathes at a slightly different pace so they never all peak together
+const DURATIONS = [3.4, 4.0, 3.7, 4.4, 3.2, 4.8]
+const DELAYS    = [0,   0.6, 1.3, 0.9, 2.0, 1.6]
 
-function PlantSvg({ colorIdx }) {
-  const leaf = LEAF_COLORS[colorIdx % LEAF_COLORS.length]
-  const leafDark = LEAF_COLORS[(colorIdx + 1) % LEAF_COLORS.length]
+function PlantIcon({ plant, index }) {
+  const animStyle = {
+    animationDuration: `${DURATIONS[index % DURATIONS.length]}s`,
+    animationDelay:    `${DELAYS[index % DELAYS.length]}s`,
+  }
+
+  if (plant.image_url) {
+    return (
+      <img
+        src={plant.image_url}
+        alt={plant.nickname}
+        className="plant-img"
+        style={animStyle}
+      />
+    )
+  }
+
+  // Fallback for any plants saved before Storage was wired up
   return (
-    <svg width="64" height="84" viewBox="0 0 64 84" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      {/* leaf crown */}
-      <ellipse cx="32" cy="18" rx="16" ry="14" fill={leaf} />
-      <ellipse cx="16" cy="27" rx="11" ry="9"  fill={leafDark} />
-      <ellipse cx="48" cy="27" rx="11" ry="9"  fill={leafDark} />
-      {/* stem */}
-      <rect x="29" y="30" width="6" height="13" rx="3" fill="#74c69d" />
-      {/* pot rim */}
-      <rect x="15" y="41" width="34" height="6" rx="3" fill="#c2773b" />
-      {/* pot body */}
-      <path d="M19 47 L45 47 L41 76 L23 76 Z" fill="#a05c2c" />
-      {/* pot highlight */}
-      <path d="M25 50 L23 72" stroke="#c2773b" strokeWidth="2.5" strokeLinecap="round" opacity="0.45" />
-    </svg>
+    <div className="plant-img plant-img-fallback" style={animStyle} aria-hidden="true">
+      🪴
+    </div>
   )
 }
 
 export default function PlantShelf({ refresh }) {
-  const [plants, setPlants]   = useState([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError]     = useState(null)
+  const [plants, setPlants]     = useState([])
+  const [loading, setLoading]   = useState(true)
+  const [error, setError]       = useState(null)
   const [selected, setSelected] = useState(null)
 
   useEffect(() => {
@@ -61,7 +66,7 @@ export default function PlantShelf({ refresh }) {
               onClick={() => setSelected(plant)}
               aria-label={`View details for ${plant.nickname}`}
             >
-              <PlantSvg colorIdx={i} />
+              <PlantIcon plant={plant} index={i} />
               <span className="plant-nickname">{plant.nickname}</span>
             </button>
           ))}
