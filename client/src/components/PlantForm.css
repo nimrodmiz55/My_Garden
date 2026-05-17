@@ -1,0 +1,111 @@
+.plant-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto;
+}
+
+.plant-form h2 {
+  margin: 0 0 4px;
+  font-size: 1.4rem;
+  color: #2d6a4f;
+}
+
+.photo-drop {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border: 2px dashed #74c69d;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  background: #f0faf4;
+  transition: border-color 0.2s;
+
+  &:hover,
+  &:focus-visible {
+    border-color: #2d6a4f;
+    outline: none;
+  }
+}
+
+.photo-placeholder {
+  color: #74c69d;
+  font-size: 0.95rem;
+  text-align: center;
+  padding: 16px;
+}
+
+.photo-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.plant-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #1b4332;
+}
+
+.plant-form input[type='text'],
+.plant-form input[type='date'] {
+  padding: 10px 12px;
+  border: 1.5px solid #b7e4c7;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: #f9fefb;
+  color: #1b4332;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: #2d6a4f;
+  }
+}
+
+.plant-form button[type='submit'] {
+  padding: 12px;
+  background: #2d6a4f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+
+  &:hover:not(:disabled) {
+    background: #1b4332;
+  }
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+}
+
+.form-status {
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 0;
+
+  &.ok {
+    background: #d8f3dc;
+    color: #1b4332;
+  }
+
+  &.error {
+    background: #ffe5e5;
+    color: #9b1c1c;
+  }
+}
