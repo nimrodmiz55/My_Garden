@@ -47,7 +47,7 @@ function PlantIcon({ plant, index, thirsty }) {
   )
 }
 
-export default function PlantShelf({ refresh }) {
+export default function PlantShelf({ refresh, email }) {
   const [plants, setPlants]     = useState([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState(null)
@@ -55,7 +55,7 @@ export default function PlantShelf({ refresh }) {
 
   useEffect(() => {
     setLoading(true)
-    fetch('/api/plants')
+    fetch(`/api/plants?email=${encodeURIComponent(email)}`)
       .then((r) => {
         if (!r.ok) throw new Error('Could not load plants')
         return r.json()
@@ -63,7 +63,7 @@ export default function PlantShelf({ refresh }) {
       .then(setPlants)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
-  }, [refresh])
+  }, [refresh, email])
 
   if (loading) return <p className="shelf-message">Loading your garden…</p>
   if (error)   return <p className="shelf-message error">{error}</p>

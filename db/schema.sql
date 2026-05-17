@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS plants (
   size                   TEXT        NOT NULL CHECK (size IN ('small', 'medium', 'large')),
   watering_interval_days INTEGER     NOT NULL,
   image_url              TEXT,
+  owner_email            TEXT,
   created_at             TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

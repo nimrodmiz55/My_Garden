@@ -29,6 +29,14 @@
   opacity: 0.8;
 }
 
+/* Groups the Add Plant button + user chip */
+.app-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
 .btn-add {
   padding: 9px 18px;
   background: #fff;
@@ -45,6 +53,40 @@
     background: #d8f3dc;
     transform: translateY(-1px);
   }
+}
+
+/* ── User chip (email + logout) ─────────────────── */
+.user-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 999px;
+  padding: 5px 5px 5px 12px;
+}
+
+.user-email {
+  font-size: 0.8rem;
+  opacity: 0.9;
+  max-width: 160px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.btn-logout {
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+
+  &:hover { background: rgba(255, 255, 255, 0.35); }
 }
 
 /* ── Add-plant slide-in panel ────────────────────── */

@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
 import './PlantForm.css'
 
-export default function PlantForm({ onSuccess }) {
+export default function PlantForm({ onSuccess, email }) {
   const [photo, setPhoto] = useState(null)
   const [preview, setPreview] = useState(null)
   const [nickname, setNickname] = useState('')
@@ -28,6 +28,7 @@ export default function PlantForm({ onSuccess }) {
     formData.append('photo', photo)
     formData.append('nickname', nickname)
     formData.append('lastWatered', lastWatered)
+    formData.append('email', email)
 
     setLoading(true)
     setStatus(null)
