@@ -25,11 +25,15 @@ The JSON must contain exactly these three fields:
 
 Example: {"species":"Monstera Deliciosa","size":"medium","wateringIntervalDays":7}`;
 
-// GET /api/plants — fetch all plants ordered newest first
-router.get('/', async (_req, res) => {
+// GET /api/plants?email= — fetch plants for a specific owner
+router.get('/', async (req, res) => {
+  const { email } = req.query;
+  if (!email) return res.status(400).json({ error: 'email query parameter is required' });
+
   const { data, error } = await supabase
     .from('plants')
     .select('*')
+    .eq('owner_email', email)
     .order('created_at', { ascending: false });
 
   if (error) return res.status(500).json({ error: error.message });
@@ -38,13 +42,14 @@ router.get('/', async (_req, res) => {
 
 // POST /api/plants — analyze with Gemini, then persist to Supabase
 router.post('/', upload.single('photo'), async (req, res) => {
-  const { nickname, lastWatered } = req.body;
+  const { nickname, lastWatered, email } = req.body;
   const photo = req.file;
 
   if (!photo) return res.status(400).json({ error: 'A plant photo is required' });
   if (!nickname || !lastWatered) {
     return res.status(400).json({ error: 'nickname and lastWatered are required' });
   }
+  if (!email) return res.status(400).json({ error: 'email is required' });
 
   // 1. Send image to Gemini for species/size/watering analysis
   let analysis;
@@ -118,6 +123,7 @@ router.post('/', upload.single('photo'), async (req, res) => {
       size: analysis.size,
       watering_interval_days: analysis.wateringIntervalDays,
       image_url: imageUrl,
+      owner_email: email,
     })
     .select()
     .single();
