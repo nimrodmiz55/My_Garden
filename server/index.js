@@ -3,6 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const plantsRouter = require('./routes/plants');
+require('./scheduler');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
