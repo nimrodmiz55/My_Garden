@@ -76,7 +76,7 @@
   animation: breathe ease-in-out infinite;
 }
 
-/* ── Breathing / floating animation ─────────────── */
+/* ── Healthy breathing animation ────────────────── */
 @keyframes breathe {
   0%, 100% {
     transform: scale(1) translateY(0);
@@ -92,6 +92,30 @@
   }
 }
 
+/* ── Thirsty state ───────────────────────────────── */
+.plant-img--thirsty {
+  border-color: #ef4444;
+  animation-name: thirsty-pulse;
+  /* animationDuration is halved via inline style for urgency */
+}
+
+@keyframes thirsty-pulse {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    box-shadow:
+      0 0  0   3px rgba(239, 68, 68, 0.25),
+      0 4px 12px  rgba(239, 68, 68, 0.30),
+      0 1px  4px  rgba(0, 0, 0, 0.12);
+  }
+  50% {
+    transform: scale(1.08) translateY(-5px);
+    box-shadow:
+      0 0  0   7px rgba(239, 68, 68, 0.15),
+      0 10px 24px  rgba(239, 68, 68, 0.45),
+      0  3px  8px  rgba(0, 0, 0, 0.14);
+  }
+}
+
 /* ── Nickname label ──────────────────────────────── */
 .plant-nickname {
   font-size: 0.8rem;
@@ -102,6 +126,10 @@
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.plant-nickname--thirsty {
+  color: #dc2626;
 }
 
 /* ── Empty / loading / error states ─────────────── */

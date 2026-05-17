@@ -6,18 +6,34 @@ import './PlantShelf.css'
 const DURATIONS = [3.4, 4.0, 3.7, 4.4, 3.2, 4.8]
 const DELAYS    = [0,   0.6, 1.3, 0.9, 2.0, 1.6]
 
-function PlantIcon({ plant, index }) {
+function isThirsty(plant) {
+  const [y, m, d] = plant.last_watered_date.split('-').map(Number)
+  const nextWatering = new Date(y, m - 1, d)
+  nextWatering.setDate(nextWatering.getDate() + plant.watering_interval_days)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return today >= nextWatering
+}
+
+function PlantIcon({ plant, index, thirsty }) {
+  const baseDuration = DURATIONS[index % DURATIONS.length]
   const animStyle = {
-    animationDuration: `${DURATIONS[index % DURATIONS.length]}s`,
+    // Thirsty plants animate at ~half the normal speed — more urgent
+    animationDuration: `${thirsty ? baseDuration / 2 : baseDuration}s`,
     animationDelay:    `${DELAYS[index % DELAYS.length]}s`,
   }
+
+  const imgClass = [
+    'plant-img',
+    thirsty ? 'plant-img--thirsty' : '',
+  ].join(' ').trim()
 
   if (plant.image_url) {
     return (
       <img
         src={plant.image_url}
         alt={plant.nickname}
-        className="plant-img"
+        className={imgClass}
         style={animStyle}
       />
     )
@@ -25,7 +41,7 @@ function PlantIcon({ plant, index }) {
 
   // Fallback for any plants saved before Storage was wired up
   return (
-    <div className="plant-img plant-img-fallback" style={animStyle} aria-hidden="true">
+    <div className={`${imgClass} plant-img-fallback`} style={animStyle} aria-hidden="true">
       🪴
     </div>
   )
@@ -59,17 +75,22 @@ export default function PlantShelf({ refresh }) {
     <>
       <section className="shelf-section" aria-label="Plant shelf">
         <div className="shelf-row">
-          {plants.map((plant, i) => (
-            <button
-              key={plant.id}
-              className="plant-card"
-              onClick={() => setSelected(plant)}
-              aria-label={`View details for ${plant.nickname}`}
-            >
-              <PlantIcon plant={plant} index={i} />
-              <span className="plant-nickname">{plant.nickname}</span>
-            </button>
-          ))}
+          {plants.map((plant, i) => {
+            const thirsty = isThirsty(plant)
+            return (
+              <button
+                key={plant.id}
+                className="plant-card"
+                onClick={() => setSelected(plant)}
+                aria-label={`View details for ${plant.nickname}`}
+              >
+                <PlantIcon plant={plant} index={i} thirsty={thirsty} />
+                <span className={`plant-nickname${thirsty ? ' plant-nickname--thirsty' : ''}`}>
+                  {plant.nickname}
+                </span>
+              </button>
+            )
+          })}
         </div>
         <div className="shelf-plank" aria-hidden="true" />
       </section>
