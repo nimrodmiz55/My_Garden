@@ -14,11 +14,12 @@
   flex-direction: column;
 }
 
-/* 3-column grid — plants sit on top of the plank */
+/* Plants sit on top of the plank — centered, max 3 per row */
 .shelf-items {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 16px;
   padding: 16px 20px 0;
   align-items: flex-end;
 }
@@ -42,25 +43,25 @@
     inset 0 -1px 0 rgba(0, 0, 0, 0.25);
 }
 
-/* ── Plant card ─────────────────────────────────────── */
+/* ── Plant card — fully transparent, image + label only ── */
 .plant-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: none;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
   cursor: pointer;
-  padding: 18px 10px 14px;
-  border-radius: 18px;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  transition: background 0.2s, transform 0.2s, border-color 0.2s;
+  padding: 10px 8px 8px;
+  border-radius: 0;
+  transition: transform 0.2s;
 
   &:hover,
   &:focus-visible {
-    background: rgba(255, 255, 255, 0.09);
-    border-color: rgba(116, 198, 157, 0.28);
+    background: none;
     transform: translateY(-4px);
     outline: none;
   }
