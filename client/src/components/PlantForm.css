@@ -8,34 +8,37 @@
 }
 
 .plant-form h2 {
-  margin: 0 0 4px;
-  font-size: 1.4rem;
-  color: #2d6a4f;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #b7e4c7;
+  letter-spacing: 0.3px;
 }
 
+/* ── Photo drop zone ────────────────────────────────── */
 .photo-drop {
   width: 100%;
   aspect-ratio: 4 / 3;
-  border: 2px dashed #74c69d;
+  border: 2px dashed rgba(116, 198, 157, 0.35);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   overflow: hidden;
-  background: #f0faf4;
-  transition: border-color 0.2s;
+  background: rgba(45, 106, 79, 0.10);
+  transition: border-color 0.2s, background 0.2s;
 
   &:hover,
   &:focus-visible {
-    border-color: #2d6a4f;
+    border-color: rgba(116, 198, 157, 0.7);
+    background: rgba(45, 106, 79, 0.16);
     outline: none;
   }
 }
 
 .photo-placeholder {
-  color: #74c69d;
-  font-size: 0.95rem;
+  color: rgba(116, 198, 157, 0.55);
+  font-size: 0.9rem;
   text-align: center;
   padding: 16px;
 }
@@ -46,66 +49,68 @@
   object-fit: cover;
 }
 
+/* ── Form fields ────────────────────────────────────── */
 .plant-form label {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: #1b4332;
+  color: rgba(200, 230, 196, 0.75);
 }
 
 .plant-form input[type='text'],
 .plant-form input[type='date'] {
   padding: 10px 12px;
-  border: 1.5px solid #b7e4c7;
+  border: 1.5px solid rgba(116, 198, 157, 0.22);
   border-radius: 8px;
-  font-size: 1rem;
-  background: #f9fefb;
-  color: #1b4332;
+  font-size: 0.95rem;
+  background: rgba(0, 0, 0, 0.28);
+  color: #c8e6c4;
   transition: border-color 0.2s;
+  color-scheme: dark;
 
   &:focus {
     outline: none;
-    border-color: #2d6a4f;
+    border-color: rgba(116, 198, 157, 0.6);
   }
 }
 
+/* ── Submit button ──────────────────────────────────── */
 .plant-form button[type='submit'] {
   padding: 12px;
-  background: #2d6a4f;
+  background: linear-gradient(135deg, #52b788, #2d6a4f);
   color: #fff;
   border: none;
   border-radius: 8px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: opacity 0.2s;
 
-  &:hover:not(:disabled) {
-    background: #1b4332;
-  }
+  &:hover:not(:disabled) { opacity: 0.88; }
 
   &:disabled {
-    opacity: 0.6;
+    opacity: 0.45;
     cursor: not-allowed;
   }
 }
 
+/* ── Status messages ────────────────────────────────── */
 .form-status {
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   text-align: center;
   padding: 8px 12px;
   border-radius: 6px;
   margin: 0;
 
   &.ok {
-    background: #d8f3dc;
-    color: #1b4332;
+    background: rgba(45, 106, 79, 0.25);
+    color: #b7e4c7;
   }
 
   &.error {
-    background: #ffe5e5;
-    color: #9b1c1c;
+    background: rgba(248, 113, 113, 0.14);
+    color: #f87171;
   }
 }

@@ -1,105 +1,149 @@
+/* ── App shell — dark greenhouse background ─────────── */
 .app {
-  min-height: 100vh;
+  min-height: 100svh;
   display: flex;
   flex-direction: column;
-  background: #f9fefb;
+  background:
+    radial-gradient(ellipse at 15% 10%,  rgba(56, 121, 69,  0.35) 0%, transparent 45%),
+    radial-gradient(ellipse at 85% 85%,  rgba(34,  85, 45,  0.30) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 100%, rgba(20,  60, 28,  0.25) 0%, transparent 50%),
+    linear-gradient(160deg, #0c1a0d 0%, #111e11 55%, #0e1a0e 100%);
 }
 
-/* ── Header ─────────────────────────────────────── */
+/* ── Header ─────────────────────────────────────────── */
 .app-header {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 20px 28px;
-  background: #2d6a4f;
-  color: #fff;
-  flex-wrap: wrap;
-  gap: 12px;
+  justify-content: center;
+  padding: 28px 64px;
 }
 
-.app-header-text h1 {
-  margin: 0;
-  font-size: 1.7rem;
-  letter-spacing: 0.4px;
-}
-
-.app-header-text p {
-  margin: 3px 0 0;
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-/* Groups the Add Plant button + user chip */
-.app-header-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.btn-add {
-  padding: 9px 18px;
-  background: #fff;
-  color: #2d6a4f;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.95rem;
+.app-title {
+  font-size: 1.45rem;
   font-weight: 700;
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  color: #c8e6c4;
+  text-shadow: 0 0 40px rgba(116, 198, 157, 0.28);
+}
+
+/* ── Logout — icon-only ghost circle ────────────────── */
+.btn-logout {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(200, 230, 196, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
-  white-space: nowrap;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 
   &:hover {
-    background: #d8f3dc;
-    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.13);
+    border-color: rgba(255, 255, 255, 0.22);
+    color: #c8e6c4;
   }
 }
 
-/* ── User chip (email + logout) ─────────────────── */
-.user-chip {
+/* ── Main content ───────────────────────────────────── */
+.app-main {
+  flex: 1;
+  padding: 12px 20px 120px; /* bottom pad keeps plants above FAB */
+}
+
+/* ── Floating Action Button ─────────────────────────── */
+.fab {
+  position: fixed;
+  bottom: 36px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #52b788, #2d6a4f);
+  border: none;
+  color: #fff;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(82, 183, 136, 0.45);
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 999px;
-  padding: 5px 5px 5px 12px;
+  justify-content: center;
+  z-index: 200;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+
+  &:hover {
+    transform: translateX(-50%) scale(1.1);
+    box-shadow: 0 6px 32px rgba(82, 183, 136, 0.65);
+  }
 }
 
-.user-email {
-  font-size: 0.8rem;
-  opacity: 0.9;
-  max-width: 160px;
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+.fab--open {
+  background: linear-gradient(145deg, #6b7280, #4b5563);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+
+  &:hover {
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.55);
+  }
 }
 
-.btn-logout {
-  padding: 5px 12px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s;
-  white-space: nowrap;
-
-  &:hover { background: rgba(255, 255, 255, 0.35); }
-}
-
-/* ── Add-plant slide-in panel ────────────────────── */
-.form-panel {
-  background: #f0faf4;
-  border-bottom: 1px solid #b7e4c7;
-  padding: 28px 20px;
+.fab-icon-wrap {
+  position: relative;
   display: flex;
+  align-items: center;
   justify-content: center;
 }
 
-/* ── Main content ───────────────────────────────── */
-.app-main {
-  flex: 1;
-  padding: 32px 20px 20px;
+.fab-plus-badge {
+  position: absolute;
+  bottom: -6px;
+  right: -8px;
+  background: #fff;
+  color: #2d6a4f;
+  border-radius: 50%;
+  width: 17px;
+  height: 17px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.fab-cancel {
+  font-size: 1.15rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* ── Form modal overlay ─────────────────────────────── */
+.form-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 150;
+  padding: 20px;
+}
+
+.form-modal {
+  background: linear-gradient(160deg, #162416, #0f1c10);
+  border: 1px solid rgba(116, 198, 157, 0.16);
+  border-radius: 22px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 90svh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
 }

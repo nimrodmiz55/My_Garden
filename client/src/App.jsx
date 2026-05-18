@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { LogOut, Camera, Plus } from 'lucide-react'
 import LoginGate from './components/LoginGate'
 import PlantForm from './components/PlantForm'
 import PlantShelf from './components/PlantShelf'
@@ -7,8 +8,8 @@ import './App.css'
 const STORAGE_KEY = 'garden_email'
 
 function App() {
-  const [email, setEmail]         = useState(() => localStorage.getItem(STORAGE_KEY) || '')
-  const [showForm, setShowForm]   = useState(false)
+  const [email, setEmail]           = useState(() => localStorage.getItem(STORAGE_KEY) || '')
+  const [showForm, setShowForm]     = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
   function handleLogin(e) {
@@ -32,34 +33,40 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <div className="app-header-text">
-          <h1>My Garden</h1>
-          <p>Track and care for your plants</p>
-        </div>
-        <div className="app-header-actions">
-          <button
-            className="btn-add"
-            onClick={() => setShowForm((v) => !v)}
-            aria-expanded={showForm}
-          >
-            {showForm ? '✕ Cancel' : '+ Add Plant'}
-          </button>
-          <div className="user-chip">
-            <span className="user-email">{email}</span>
-            <button className="btn-logout" onClick={handleLogout}>Log out</button>
-          </div>
-        </div>
+        <h1 className="app-title">My Garden</h1>
+        <button className="btn-logout" onClick={handleLogout} aria-label="Log out">
+          <LogOut size={18} />
+        </button>
       </header>
-
-      {showForm && (
-        <div className="form-panel">
-          <PlantForm email={email} onSuccess={handlePlantAdded} />
-        </div>
-      )}
 
       <main className="app-main">
         <PlantShelf refresh={refreshKey} email={email} />
       </main>
+
+      <button
+        className={`fab${showForm ? ' fab--open' : ''}`}
+        onClick={() => setShowForm((v) => !v)}
+        aria-label={showForm ? 'Cancel' : 'Add plant'}
+      >
+        {showForm ? (
+          <span className="fab-cancel">✕</span>
+        ) : (
+          <span className="fab-icon-wrap">
+            <Camera size={22} strokeWidth={2} />
+            <span className="fab-plus-badge">
+              <Plus size={10} strokeWidth={3.5} />
+            </span>
+          </span>
+        )}
+      </button>
+
+      {showForm && (
+        <div className="form-overlay" onClick={() => setShowForm(false)}>
+          <div className="form-modal" onClick={(e) => e.stopPropagation()}>
+            <PlantForm email={email} onSuccess={handlePlantAdded} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -3,7 +3,6 @@ import PlantModal from './PlantModal'
 import { API_BASE } from '../lib/api'
 import './PlantShelf.css'
 
-// Each plant breathes at a slightly different pace so they never all peak together
 const DURATIONS = [3.4, 4.0, 3.7, 4.4, 3.2, 4.8]
 const DELAYS    = [0,   0.6, 1.3, 0.9, 2.0, 1.6]
 
@@ -19,15 +18,11 @@ function isThirsty(plant) {
 function PlantIcon({ plant, index, thirsty }) {
   const baseDuration = DURATIONS[index % DURATIONS.length]
   const animStyle = {
-    // Thirsty plants animate at ~half the normal speed — more urgent
     animationDuration: `${thirsty ? baseDuration / 2 : baseDuration}s`,
     animationDelay:    `${DELAYS[index % DELAYS.length]}s`,
   }
 
-  const imgClass = [
-    'plant-img',
-    thirsty ? 'plant-img--thirsty' : '',
-  ].join(' ').trim()
+  const imgClass = ['plant-img', thirsty ? 'plant-img--thirsty' : ''].join(' ').trim()
 
   if (plant.image_url) {
     return (
@@ -40,7 +35,6 @@ function PlantIcon({ plant, index, thirsty }) {
     )
   }
 
-  // Fallback for any plants saved before Storage was wired up
   return (
     <div className={`${imgClass} plant-img-fallback`} style={animStyle} aria-hidden="true">
       🪴
@@ -69,31 +63,42 @@ export default function PlantShelf({ refresh, email }) {
   if (loading) return <p className="shelf-message">Loading your garden…</p>
   if (error)   return <p className="shelf-message error">{error}</p>
   if (!plants.length) {
-    return <p className="shelf-message">Your shelf is empty — add your first plant!</p>
+    return <p className="shelf-message">Your shelf is empty — tap the button below to add your first plant!</p>
+  }
+
+  // Chunk plants into rows of max 3 so each row gets its own shelf plank
+  const rows = []
+  for (let i = 0; i < plants.length; i += 3) {
+    rows.push(plants.slice(i, i + 3))
   }
 
   return (
     <>
       <section className="shelf-section" aria-label="Plant shelf">
-        <div className="shelf-row">
-          {plants.map((plant, i) => {
-            const thirsty = isThirsty(plant)
-            return (
-              <button
-                key={plant.id}
-                className="plant-card"
-                onClick={() => setSelected(plant)}
-                aria-label={`View details for ${plant.nickname}`}
-              >
-                <PlantIcon plant={plant} index={i} thirsty={thirsty} />
-                <span className={`plant-nickname${thirsty ? ' plant-nickname--thirsty' : ''}`}>
-                  {plant.nickname}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-        <div className="shelf-plank" aria-hidden="true" />
+        {rows.map((rowPlants, rowIdx) => (
+          <div key={rowIdx} className="shelf-row-wrapper">
+            <div className="shelf-items">
+              {rowPlants.map((plant, i) => {
+                const thirsty   = isThirsty(plant)
+                const globalIdx = rowIdx * 3 + i
+                return (
+                  <button
+                    key={plant.id}
+                    className="plant-card"
+                    onClick={() => setSelected(plant)}
+                    aria-label={`View details for ${plant.nickname}`}
+                  >
+                    <PlantIcon plant={plant} index={globalIdx} thirsty={thirsty} />
+                    <span className={`plant-nickname${thirsty ? ' plant-nickname--thirsty' : ''}`}>
+                      {plant.nickname}
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+            <div className="shelf-plank" aria-hidden="true" />
+          </div>
+        ))}
       </section>
 
       {selected && (
