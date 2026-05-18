@@ -1,5 +1,4 @@
-const nodemailer = require('nodemailer');
-const { resolve4 } = require('dns').promises;
+const { Resend } = require('resend');
 const supabase = require('../supabase');
 
 function isThirsty(plant) {
@@ -14,32 +13,13 @@ function isThirsty(plant) {
 async function notifyThirstyPlants() {
   console.log('[Notify] Running thirsty-plant check…');
 
-  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
-    console.warn('[Notify] GMAIL_USER or GMAIL_APP_PASSWORD not set — skipping');
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('[Notify] RESEND_API_KEY not set — skipping');
     return;
   }
 
-  // Resolve smtp.gmail.com to an IPv4 address ourselves — Render's free
-  // tier drops IPv6 SMTP connections, and Nodemailer's family:4 option
-  // only affects the connect() call after DNS already returned an IPv6 addr.
-  const [smtpIp] = await resolve4('smtp.gmail.com');
-  console.log(`[Notify] Resolved smtp.gmail.com → ${smtpIp}`);
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
-  const transporter = nodemailer.createTransport({
-    host: smtpIp,       // raw IPv4 — no further DNS lookup by Nodemailer
-    port: 465,
-    secure: true,
-    auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
-    },
-    tls: {
-      servername: 'smtp.gmail.com', // cert validation still uses the real hostname
-      rejectUnauthorized: false,
-    },
-  });
-
-  // Fetch every plant that has an owner email
   const { data: plants, error } = await supabase
     .from('plants')
     .select('id, nickname, last_watered_date, watering_interval_days, owner_email')
@@ -54,7 +34,7 @@ async function notifyThirstyPlants() {
   console.log(`[Notify] ${thirsty.length} thirsty plant(s) found across all users`);
   if (!thirsty.length) return;
 
-  // Group thirsty plants by owner so each user gets one email
+  // Group by owner so each user gets one consolidated email
   const byOwner = {};
   for (const plant of thirsty) {
     if (!byOwner[plant.owner_email]) byOwner[plant.owner_email] = [];
@@ -68,28 +48,29 @@ async function notifyThirstyPlants() {
       : `💧 ${count} of your plants need watering!`;
 
     const plantListHtml = userPlants
-      .map((p) => `<li style="margin:4px 0"><strong>${p.nickname}</strong></li>`)
+      .map((p) => `<li style="margin:6px 0"><strong>${p.nickname}</strong></li>`)
       .join('');
 
-    try {
-      const info = await transporter.sendMail({
-        from: `"My Garden" <${process.env.GMAIL_USER}>`,
-        to: ownerEmail,
-        subject,
-        html: `
-          <div style="font-family:sans-serif;max-width:480px;margin:auto">
-            <h2 style="color:#2d6a4f">🌿 My Garden</h2>
-            <p>The following plant${count > 1 ? 's are' : ' is'} thirsty and need watering today:</p>
-            <ul style="padding-left:20px">${plantListHtml}</ul>
-            <p style="color:#6b7280;font-size:0.9em">
-              Open your garden app to log today's watering and keep them healthy.
-            </p>
-          </div>
-        `,
-      });
-      console.log(`[Notify] Email sent → ${ownerEmail} (messageId: ${info.messageId})`);
-    } catch (err) {
-      console.error(`[Notify] Failed to send to ${ownerEmail}:`, err.message);
+    const { data, error: sendError } = await resend.emails.send({
+      from: 'My Garden <notifications@my-garden-bot.online>',
+      to: ownerEmail,
+      subject,
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:auto">
+          <h2 style="color:#2d6a4f">🌿 My Garden</h2>
+          <p>The following plant${count > 1 ? 's are' : ' is'} thirsty and need watering today:</p>
+          <ul style="padding-left:20px">${plantListHtml}</ul>
+          <p style="color:#6b7280;font-size:0.9em">
+            Open your garden app to log today's watering and keep them healthy.
+          </p>
+        </div>
+      `,
+    });
+
+    if (sendError) {
+      console.error(`[Notify] Resend rejected email to ${ownerEmail}:`, sendError);
+    } else {
+      console.log(`[Notify] Email sent → ${ownerEmail} (id: ${data.id})`);
     }
   }
 }
