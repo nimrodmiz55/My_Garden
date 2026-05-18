@@ -1,4 +1,4 @@
-const { Resend } = require('resend');
+const nodemailer = require('nodemailer');
 const supabase = require('../supabase');
 
 function isThirsty(plant) {
@@ -13,16 +13,24 @@ function isThirsty(plant) {
 async function notifyThirstyPlants() {
   console.log('[Notify] Running thirsty-plant check…');
 
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('[Notify] RESEND_API_KEY not set — skipping email notifications');
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.warn('[Notify] GMAIL_USER or GMAIL_APP_PASSWORD not set — skipping');
     return;
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
 
+  // Fetch every plant that has an owner email
   const { data: plants, error } = await supabase
     .from('plants')
-    .select('id, nickname, last_watered_date, watering_interval_days');
+    .select('id, nickname, last_watered_date, watering_interval_days, owner_email')
+    .not('owner_email', 'is', null);
 
   if (error) {
     console.error('[Notify] Failed to fetch plants:', error.message);
@@ -30,40 +38,45 @@ async function notifyThirstyPlants() {
   }
 
   const thirsty = plants.filter(isThirsty);
-  console.log(`[Notify] ${thirsty.length} thirsty plant(s) found`);
-
+  console.log(`[Notify] ${thirsty.length} thirsty plant(s) found across all users`);
   if (!thirsty.length) return;
 
-  const to = process.env.NOTIFICATION_EMAIL;
-  if (!to) {
-    console.error('[Notify] NOTIFICATION_EMAIL is not set — cannot send emails');
-    return;
-  }
-  console.log(`[Notify] Sending to: ${to}`);
-
+  // Group thirsty plants by owner so each user gets one email
+  const byOwner = {};
   for (const plant of thirsty) {
+    if (!byOwner[plant.owner_email]) byOwner[plant.owner_email] = [];
+    byOwner[plant.owner_email].push(plant);
+  }
+
+  for (const [ownerEmail, userPlants] of Object.entries(byOwner)) {
+    const count = userPlants.length;
+    const subject = count === 1
+      ? `💧 ${userPlants[0].nickname} needs watering!`
+      : `💧 ${count} of your plants need watering!`;
+
+    const plantListHtml = userPlants
+      .map((p) => `<li style="margin:4px 0"><strong>${p.nickname}</strong></li>`)
+      .join('');
+
     try {
-      const { data, error } = await resend.emails.send({
-        from: 'MyGarden <onboarding@resend.dev>',
-        to,
-        subject: `💧 ${plant.nickname} needs watering!`,
+      const info = await transporter.sendMail({
+        from: `"My Garden" <${process.env.GMAIL_USER}>`,
+        to: ownerEmail,
+        subject,
         html: `
           <div style="font-family:sans-serif;max-width:480px;margin:auto">
             <h2 style="color:#2d6a4f">🌿 My Garden</h2>
-            <p>Your plant <strong>${plant.nickname}</strong> is thirsty and needs to be watered!</p>
+            <p>The following plant${count > 1 ? 's are' : ' is'} thirsty and need watering today:</p>
+            <ul style="padding-left:20px">${plantListHtml}</ul>
             <p style="color:#6b7280;font-size:0.9em">
-              Open your garden app to log today's watering and keep it healthy.
+              Open your garden app to log today's watering and keep them healthy.
             </p>
           </div>
         `,
       });
-      if (error) {
-        console.error(`[Notify] Resend rejected email for "${plant.nickname}":`, error);
-      } else {
-        console.log(`[Notify] Email queued for "${plant.nickname}" — Resend id: ${data.id}`);
-      }
+      console.log(`[Notify] Email sent → ${ownerEmail} (messageId: ${info.messageId})`);
     } catch (err) {
-      console.error(`[Notify] Failed to send email for "${plant.nickname}":`, err.message);
+      console.error(`[Notify] Failed to send to ${ownerEmail}:`, err.message);
     }
   }
 }
