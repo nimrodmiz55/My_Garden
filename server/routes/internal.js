@@ -17,13 +17,13 @@ router.post('/notify', async (req, res) => {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
-  try {
-    await notifyThirstyPlants();
-    res.json({ ok: true });
-  } catch (err) {
-    console.error('[Internal] /notify error:', err.message);
-    res.status(500).json({ error: err.message });
-  }
+  // Respond immediately so the external cron service doesn't time out
+  // while the SMTP handshake and email sending happen in the background.
+  res.json({ ok: true, message: 'Notification job started' });
+
+  notifyThirstyPlants().catch((err) => {
+    console.error('[Internal] /notify background error:', err.message);
+  });
 });
 
 module.exports = router;
