@@ -1,21 +1,43 @@
 import { useRef, useState } from 'react'
+import imageCompression from 'browser-image-compression'
 import { API_BASE } from '../lib/api'
 import './PlantForm.css'
 
+const COMPRESSION_OPTIONS = {
+  maxSizeMB: 0.38,        // target < 400 KB
+  maxWidthOrHeight: 1200,
+  useWebWorker: true,
+}
+
 export default function PlantForm({ onSuccess, email }) {
-  const [photo, setPhoto] = useState(null)
-  const [preview, setPreview] = useState(null)
-  const [nickname, setNickname] = useState('')
+  const [photo, setPhoto]           = useState(null)
+  const [preview, setPreview]       = useState(null)
+  const [nickname, setNickname]     = useState('')
   const [lastWatered, setLastWatered] = useState('')
-  const [status, setStatus] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [status, setStatus]         = useState(null)
+  const [loading, setLoading]       = useState(false)
+  const [compressing, setCompressing] = useState(false)
   const inputRef = useRef(null)
 
-  function handlePhotoChange(e) {
+  async function handlePhotoChange(e) {
     const file = e.target.files[0]
     if (!file) return
-    setPhoto(file)
+
+    // Show the raw preview immediately so the user gets instant feedback
     setPreview(URL.createObjectURL(file))
+    setCompressing(true)
+
+    try {
+      const compressed = await imageCompression(file, COMPRESSION_OPTIONS)
+      setPhoto(compressed)
+      // Update preview to the compressed version
+      setPreview(URL.createObjectURL(compressed))
+    } catch {
+      // Compression failed — fall back to the original file
+      setPhoto(file)
+    } finally {
+      setCompressing(false)
+    }
   }
 
   async function handleSubmit(e) {
@@ -59,7 +81,12 @@ export default function PlantForm({ onSuccess, email }) {
         onKeyDown={(e) => e.key === 'Enter' && inputRef.current.click()}
       >
         {preview ? (
-          <img src={preview} alt="Plant preview" className="photo-preview" />
+          <>
+            <img src={preview} alt="Plant preview" className="photo-preview" />
+            {compressing && (
+              <span className="compressing-badge">Optimizing…</span>
+            )}
+          </>
         ) : (
           <span className="photo-placeholder">Tap to take or upload a photo</span>
         )}
@@ -95,8 +122,8 @@ export default function PlantForm({ onSuccess, email }) {
         />
       </label>
 
-      <button type="submit" disabled={loading}>
-        {loading ? 'Analyzing…' : 'Add Plant'}
+      <button type="submit" disabled={loading || compressing}>
+        {loading ? 'Analyzing…' : compressing ? 'Optimizing…' : 'Add Plant'}
       </button>
 
       {status && (

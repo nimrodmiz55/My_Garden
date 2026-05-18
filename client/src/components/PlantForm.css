@@ -16,6 +16,7 @@
 
 /* ── Photo drop zone ────────────────────────────────── */
 .photo-drop {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   border: 2px dashed rgba(116, 198, 157, 0.35);
@@ -34,6 +35,21 @@
     background: rgba(45, 106, 79, 0.16);
     outline: none;
   }
+}
+
+.compressing-badge {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.62);
+  color: #b7e4c7;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  pointer-events: none;
 }
 
 .photo-placeholder {
