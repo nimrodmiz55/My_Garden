@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const { resolve4 } = require('dns').promises;
 const supabase = require('../supabase');
 
 function isThirsty(plant) {
@@ -18,16 +19,24 @@ async function notifyThirstyPlants() {
     return;
   }
 
+  // Resolve smtp.gmail.com to an IPv4 address ourselves — Render's free
+  // tier drops IPv6 SMTP connections, and Nodemailer's family:4 option
+  // only affects the connect() call after DNS already returned an IPv6 addr.
+  const [smtpIp] = await resolve4('smtp.gmail.com');
+  console.log(`[Notify] Resolved smtp.gmail.com → ${smtpIp}`);
+
   const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false, // STARTTLS on 587
-    family: 4,
+    host: smtpIp,       // raw IPv4 — no further DNS lookup by Nodemailer
+    port: 465,
+    secure: true,
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_APP_PASSWORD,
     },
-    tls: { rejectUnauthorized: false },
+    tls: {
+      servername: 'smtp.gmail.com', // cert validation still uses the real hostname
+      rejectUnauthorized: false,
+    },
   });
 
   // Fetch every plant that has an owner email
