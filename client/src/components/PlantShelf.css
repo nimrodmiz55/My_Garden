@@ -14,13 +14,14 @@
   flex-direction: column;
 }
 
-/* Plants sit on top of the plank — centered, max 3 per row */
+/* Plants sit on top of the plank — centered, exactly 3 per row.
+   JSX already chunks into rows of 3 so wrap must never fire. */
 .shelf-items {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: center;
-  gap: 8px 16px;
-  padding: 16px 20px 0;
+  gap: 8px;
+  padding: 16px 12px 0;
   align-items: flex-end;
 }
 
@@ -107,11 +108,15 @@
 @keyframes thirsty-pulse {
   0%, 100% {
     transform: scale(1) translateY(0);
-    filter: drop-shadow(0 0 0px rgba(248, 113, 113, 0));
+    filter:
+      drop-shadow(0 0 3px rgba(248, 113, 113, 0.6));
   }
   50% {
     transform: scale(1.08) translateY(-5px);
-    filter: drop-shadow(0 0 14px rgba(248, 113, 113, 0.75));
+    filter:
+      drop-shadow(0 0  6px rgba(248, 113, 113, 1.0))
+      drop-shadow(0 0 18px rgba(248, 113, 113, 0.85))
+      drop-shadow(0 0 36px rgba(248, 113, 113, 0.55));
   }
 }
 
