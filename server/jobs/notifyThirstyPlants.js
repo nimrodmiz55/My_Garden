@@ -34,11 +34,16 @@ async function notifyThirstyPlants() {
 
   if (!thirsty.length) return;
 
-  const to = process.env.NOTIFICATION_EMAIL || 'placeholder@example.com';
+  const to = process.env.NOTIFICATION_EMAIL;
+  if (!to) {
+    console.error('[Notify] NOTIFICATION_EMAIL is not set — cannot send emails');
+    return;
+  }
+  console.log(`[Notify] Sending to: ${to}`);
 
   for (const plant of thirsty) {
     try {
-      await resend.emails.send({
+      const { data, error } = await resend.emails.send({
         from: 'MyGarden <onboarding@resend.dev>',
         to,
         subject: `💧 ${plant.nickname} needs watering!`,
@@ -52,7 +57,11 @@ async function notifyThirstyPlants() {
           </div>
         `,
       });
-      console.log(`[Notify] Email sent for "${plant.nickname}"`);
+      if (error) {
+        console.error(`[Notify] Resend rejected email for "${plant.nickname}":`, error);
+      } else {
+        console.log(`[Notify] Email queued for "${plant.nickname}" — Resend id: ${data.id}`);
+      }
     } catch (err) {
       console.error(`[Notify] Failed to send email for "${plant.nickname}":`, err.message);
     }
