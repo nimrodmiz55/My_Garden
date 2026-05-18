@@ -20,13 +20,14 @@ async function notifyThirstyPlants() {
 
   const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 465,
-    secure: true,
-    family: 4, // force IPv4 — Render free tier has no IPv6 SMTP route
+    port: 587,
+    secure: false, // STARTTLS on 587
+    family: 4,
     auth: {
       user: process.env.GMAIL_USER,
       pass: process.env.GMAIL_APP_PASSWORD,
     },
+    tls: { rejectUnauthorized: false },
   });
 
   // Fetch every plant that has an owner email
