@@ -42,13 +42,30 @@ function PlantIcon({ plant, index, thirsty }) {
   )
 }
 
-export default function PlantShelf({ refresh, email }) {
+export default function PlantShelf({ refresh, email, isDemo, demoPlants, demoNewPlant }) {
   const [plants, setPlants]     = useState([])
-  const [loading, setLoading]   = useState(true)
+  const [loading, setLoading]   = useState(!isDemo)
   const [error, setError]       = useState(null)
   const [selected, setSelected] = useState(null)
 
+  // Initialize from demo plants when demo mode activates
   useEffect(() => {
+    if (!isDemo) return
+    setPlants(demoPlants || [])
+    setLoading(false)
+    setError(null)
+  }, [isDemo, demoPlants])
+
+  // Prepend a newly added demo plant
+  useEffect(() => {
+    if (demoNewPlant) {
+      setPlants((prev) => [demoNewPlant, ...prev])
+    }
+  }, [demoNewPlant])
+
+  // Normal data fetch — skipped in demo mode
+  useEffect(() => {
+    if (isDemo) return
     setLoading(true)
     fetch(`${API_BASE}/api/plants?email=${encodeURIComponent(email)}`)
       .then((r) => {
@@ -58,12 +75,18 @@ export default function PlantShelf({ refresh, email }) {
       .then(setPlants)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false))
-  }, [refresh, email])
+  }, [refresh, email, isDemo])
 
   if (loading) return <p className="shelf-message">Loading your garden…</p>
   if (error)   return <p className="shelf-message error">{error}</p>
   if (!plants.length) {
-    return <p className="shelf-message">Your shelf is empty — tap the button below to add your first plant!</p>
+    return (
+      <p className="shelf-message">
+        {isDemo
+          ? 'The demo garden is empty — tap the button below to add a plant!'
+          : 'Your shelf is empty — tap the button below to add your first plant!'}
+      </p>
+    )
   }
 
   // Chunk plants into rows of max 3 so each row gets its own shelf plank
@@ -104,6 +127,7 @@ export default function PlantShelf({ refresh, email }) {
       {selected && (
         <PlantModal
           plant={selected}
+          isDemo={isDemo}
           onClose={() => setSelected(null)}
           onDelete={(id) => {
             setPlants((prev) => prev.filter((p) => p.id !== id))

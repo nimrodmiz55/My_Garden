@@ -28,6 +28,23 @@
   text-shadow: 0 0 40px rgba(116, 198, 157, 0.28);
 }
 
+/* ── Demo mode badge ────────────────────────────────── */
+.demo-badge {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.3);
+  color: #fbbf24;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+
 /* ── Logout — icon-only ghost circle ────────────────── */
 .btn-logout {
   position: absolute;

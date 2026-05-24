@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import './LoginGate.css'
 
-export default function LoginGate({ onLogin }) {
-  const [email, setEmail]   = useState('')
-  const [error, setError]   = useState('')
+export default function LoginGate({ onLogin, onDemoMode }) {
+  const [email, setEmail]           = useState('')
+  const [error, setError]           = useState('')
+  const [demoLoading, setDemoLoading] = useState(false)
 
   function handleSubmit(e) {
     e.preventDefault()
@@ -13,6 +14,11 @@ export default function LoginGate({ onLogin }) {
       return
     }
     onLogin(trimmed)
+  }
+
+  async function handleDemoClick() {
+    setDemoLoading(true)
+    await onDemoMode()
   }
 
   return (
@@ -34,6 +40,17 @@ export default function LoginGate({ onLogin }) {
           {error && <p className="login-error">{error}</p>}
           <button type="submit">Enter My Garden</button>
         </form>
+
+        <div className="login-divider"><span>or</span></div>
+
+        <button
+          className="btn-demo"
+          onClick={handleDemoClick}
+          disabled={demoLoading}
+          type="button"
+        >
+          {demoLoading ? '🌱 Loading demo…' : "I'm just looking"}
+        </button>
       </div>
     </div>
   )

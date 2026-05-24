@@ -14,7 +14,7 @@ function fmt(dateStr) {
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export default function PlantModal({ plant, onClose, onDelete, onWater }) {
+export default function PlantModal({ plant, onClose, onDelete, onWater, isDemo }) {
   const [confirming,   setConfirming]   = useState(false)
   const [deleting,     setDeleting]     = useState(false)
   const [deleteError,  setDeleteError]  = useState(null)
@@ -28,6 +28,10 @@ export default function PlantModal({ plant, onClose, onDelete, onWater }) {
   }, [onClose])
 
   async function handleWater() {
+    if (isDemo) {
+      onWater(plant.id, new Date().toISOString().split('T')[0])
+      return
+    }
     setWatering(true)
     setWaterError(null)
     try {
@@ -42,6 +46,10 @@ export default function PlantModal({ plant, onClose, onDelete, onWater }) {
   }
 
   async function handleDelete() {
+    if (isDemo) {
+      onDelete(plant.id)
+      return
+    }
     setDeleting(true)
     setDeleteError(null)
     try {
