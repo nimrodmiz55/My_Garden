@@ -3,6 +3,10 @@
   min-height: 100svh;
   display: flex;
   flex-direction: column;
+  /* Push all content below the notch / Dynamic Island.
+     The dark background still bleeds behind it (viewport-fit=cover). */
+  padding-top: env(safe-area-inset-top, 20px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background:
     radial-gradient(ellipse at 15% 10%,  rgba(56, 121, 69,  0.35) 0%, transparent 45%),
     radial-gradient(ellipse at 85% 85%,  rgba(34,  85, 45,  0.30) 0%, transparent 45%),
@@ -73,13 +77,13 @@
 /* ── Main content ───────────────────────────────────── */
 .app-main {
   flex: 1;
-  padding: 12px 20px 120px; /* bottom pad keeps plants above FAB */
+  padding: 12px 20px calc(env(safe-area-inset-bottom, 0px) + 120px);
 }
 
 /* ── Floating Action Button ─────────────────────────── */
 .fab {
   position: fixed;
-  bottom: 36px;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 36px);
   left: 50%;
   transform: translateX(-50%);
   width: 64px;
