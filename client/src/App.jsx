@@ -3,36 +3,68 @@ import { LogOut, Camera, Plus } from 'lucide-react'
 import LoginGate from './components/LoginGate'
 import PlantForm from './components/PlantForm'
 import PlantShelf from './components/PlantShelf'
+import WelcomeModal from './components/WelcomeModal'
+import { API_BASE } from './lib/api'
 import './App.css'
 
-const STORAGE_KEY = 'garden_email'
+const STORAGE_KEY  = 'garden_email'
+const DEMO_EMAIL   = 'nimi98791@gmail.com'
 
 function App() {
-  const [email, setEmail]           = useState(() => localStorage.getItem(STORAGE_KEY) || '')
-  const [showForm, setShowForm]     = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
+  const [email, setEmail]               = useState(() => localStorage.getItem(STORAGE_KEY) || '')
+  const [showForm, setShowForm]         = useState(false)
+  const [refreshKey, setRefreshKey]     = useState(0)
+  const [isDemo, setIsDemo]             = useState(false)
+  const [demoPlants, setDemoPlants]     = useState(null)
+  const [demoNewPlant, setDemoNewPlant] = useState(null)
+  const [showWelcome, setShowWelcome]   = useState(false)
 
   function handleLogin(e) {
     localStorage.setItem(STORAGE_KEY, e)
     setEmail(e)
+    const key = `garden_welcomed_${e}`
+    if (!localStorage.getItem(key)) {
+      localStorage.setItem(key, '1')
+      setShowWelcome(true)
+    }
+  }
+
+  async function handleDemoMode() {
+    let plants = []
+    try {
+      const res = await fetch(`${API_BASE}/api/plants?email=${encodeURIComponent(DEMO_EMAIL)}`)
+      if (res.ok) plants = await res.json()
+    } catch {}
+    setDemoPlants(plants)
+    setIsDemo(true)
   }
 
   function handleLogout() {
     localStorage.removeItem(STORAGE_KEY)
     setEmail('')
     setShowForm(false)
+    setIsDemo(false)
+    setDemoPlants(null)
+    setDemoNewPlant(null)
   }
 
-  function handlePlantAdded() {
-    setRefreshKey((k) => k + 1)
+  function handlePlantAdded(data) {
+    if (isDemo && data) {
+      setDemoNewPlant(data)
+    } else {
+      setRefreshKey((k) => k + 1)
+    }
     setShowForm(false)
   }
 
-  if (!email) return <LoginGate onLogin={handleLogin} />
+  if (!email && !isDemo) return (
+    <LoginGate onLogin={handleLogin} onDemoMode={handleDemoMode} />
+  )
 
   return (
     <div className="app">
       <header className="app-header">
+        {isDemo && <span className="demo-badge">Demo</span>}
         <h1 className="app-title">My Garden</h1>
         <button className="btn-logout" onClick={handleLogout} aria-label="Log out">
           <LogOut size={18} />
@@ -40,7 +72,13 @@ function App() {
       </header>
 
       <main className="app-main">
-        <PlantShelf refresh={refreshKey} email={email} />
+        <PlantShelf
+          refresh={refreshKey}
+          email={email}
+          isDemo={isDemo}
+          demoPlants={demoPlants}
+          demoNewPlant={demoNewPlant}
+        />
       </main>
 
       <button
@@ -63,10 +101,12 @@ function App() {
       {showForm && (
         <div className="form-overlay" onClick={() => setShowForm(false)}>
           <div className="form-modal" onClick={(e) => e.stopPropagation()}>
-            <PlantForm email={email} onSuccess={handlePlantAdded} />
+            <PlantForm email={email} onSuccess={handlePlantAdded} isDemo={isDemo} />
           </div>
         </div>
       )}
+
+      {showWelcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
     </div>
   )
 }

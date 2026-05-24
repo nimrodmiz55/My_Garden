@@ -9,7 +9,7 @@ const COMPRESSION_OPTIONS = {
   useWebWorker: true,
 }
 
-export default function PlantForm({ onSuccess, email }) {
+export default function PlantForm({ onSuccess, email, isDemo }) {
   const [photo, setPhoto]           = useState(null)
   const [preview, setPreview]       = useState(null)
   const [nickname, setNickname]     = useState('')
@@ -44,6 +44,24 @@ export default function PlantForm({ onSuccess, email }) {
     e.preventDefault()
     if (!photo) {
       setStatus({ ok: false, message: 'Please select a photo of your plant.' })
+      return
+    }
+
+    // Demo mode: build a local plant, skip the API entirely
+    if (isDemo) {
+      const fakePlant = {
+        id: `demo_${Date.now()}`,
+        nickname,
+        last_watered_date: lastWatered,
+        species: 'Mystery Plant',
+        size: 'medium',
+        watering_interval_days: 7,
+        image_url: preview,
+        owner_email: 'demo',
+        created_at: new Date().toISOString(),
+      }
+      setStatus({ ok: true, message: `"${nickname}" added to your demo garden!` })
+      setTimeout(() => onSuccess?.(fakePlant), 1200)
       return
     }
 

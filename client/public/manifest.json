@@ -1,0 +1,18 @@
+{
+  "name": "My Garden",
+  "short_name": "My Garden",
+  "description": "Track and care for your houseplants",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0c1a0d",
+  "theme_color": "#0c1a0d",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
