@@ -18,6 +18,10 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Plant Care API is running' });
 });
 
+app.get('/api/ping', (req, res) => {
+  res.status(200).send('ok');
+});
+
 app.use('/api/plants', plantsRouter);
 app.use('/api/internal', internalRouter);
 
