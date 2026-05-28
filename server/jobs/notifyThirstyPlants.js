@@ -1,6 +1,18 @@
 const { Resend } = require('resend');
 const supabase = require('../supabase');
 
+async function recordRun() {
+  const today = new Date().toISOString().slice(0, 10);
+  const { error } = await supabase
+    .from('notification_runs')
+    .upsert({ run_date: today }, { onConflict: 'run_date', ignoreDuplicates: true });
+  if (error) {
+    console.error('[Notify] Failed to record run in notification_runs:', error.message);
+  } else {
+    console.log(`[Notify] Run recorded for ${today}`);
+  }
+}
+
 function isThirsty(plant) {
   const [y, m, d] = plant.last_watered_date.split('-').map(Number);
   const nextWatering = new Date(y, m - 1, d);
@@ -32,7 +44,10 @@ async function notifyThirstyPlants() {
 
   const thirsty = plants.filter(isThirsty);
   console.log(`[Notify] ${thirsty.length} thirsty plant(s) found across all users`);
-  if (!thirsty.length) return;
+  if (!thirsty.length) {
+    await recordRun();
+    return;
+  }
 
   // Group by owner so each user gets one consolidated email
   const byOwner = {};
@@ -73,6 +88,9 @@ async function notifyThirstyPlants() {
       console.log(`[Notify] Email sent → ${ownerEmail} (id: ${data.id})`);
     }
   }
+
+  // Record that notifications ran today so duplicate cron hits are skipped.
+  await recordRun();
 }
 
 module.exports = notifyThirstyPlants;
