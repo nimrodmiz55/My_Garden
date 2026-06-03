@@ -139,6 +139,12 @@ export default function PlantShelf({ refresh, email, isDemo, demoPlants, demoNew
             )
             setSelected(null)
           }}
+          onRename={(id, newName) => {
+            setPlants((prev) =>
+              prev.map((p) => p.id === id ? { ...p, nickname: newName } : p)
+            )
+            setSelected((prev) => prev ? { ...prev, nickname: newName } : null)
+          }}
         />
       )}
     </>

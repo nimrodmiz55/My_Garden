@@ -42,10 +42,102 @@
   &:hover { color: #1b4332; }
 }
 
-.modal-title {
+/* Title row with pencil trigger */
+.modal-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0 0 4px;
+}
+
+.modal-title {
+  margin: 0;
   font-size: 1.5rem;
   color: #1b4332;
+}
+
+.btn-rename-trigger {
+  background: none;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s;
+  flex-shrink: 0;
+
+  &:hover { color: #1b4332; }
+}
+
+/* Inline rename editor */
+.modal-title-edit {
+  margin: 0 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-title-input {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1b4332;
+  border: 2px solid #40916c;
+  border-radius: 8px;
+  padding: 4px 10px;
+  width: 100%;
+  outline: none;
+  background: #f0faf4;
+  box-sizing: border-box;
+
+  &:focus { border-color: #1b4332; }
+}
+
+.modal-title-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-rename-cancel {
+  flex: 1;
+  padding: 8px;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) { background: #e5e7eb; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-rename-save {
+  flex: 1;
+  padding: 8px;
+  background: #40916c;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover:not(:disabled) { background: #2d6a4f; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.rename-error {
+  font-size: 0.82rem;
+  color: #9b1c1c;
+  background: #ffe5e5;
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin: 0;
 }
 
 .modal-species {

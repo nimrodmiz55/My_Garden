@@ -26,6 +26,11 @@ function App() {
     if (!localStorage.getItem(key)) {
       localStorage.setItem(key, '1')
       setShowWelcome(true)
+      fetch(`${API_BASE}/api/users/welcome`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: e }),
+      }).catch(() => {})
     }
   }
 

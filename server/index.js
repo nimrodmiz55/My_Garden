@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const plantsRouter = require('./routes/plants');
 const internalRouter = require('./routes/internal');
+const usersRouter = require('./routes/users');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -24,6 +25,7 @@ app.get('/api/ping', (req, res) => {
 
 app.use('/api/plants', plantsRouter);
 app.use('/api/internal', internalRouter);
+app.use('/api/users', usersRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

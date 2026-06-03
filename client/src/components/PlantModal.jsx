@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { Pencil } from 'lucide-react'
 import { API_BASE } from '../lib/api'
 import './PlantModal.css'
 
@@ -14,18 +15,71 @@ function fmt(dateStr) {
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export default function PlantModal({ plant, onClose, onDelete, onWater, isDemo }) {
+export default function PlantModal({ plant, onClose, onDelete, onWater, onRename, isDemo }) {
   const [confirming,   setConfirming]   = useState(false)
   const [deleting,     setDeleting]     = useState(false)
   const [deleteError,  setDeleteError]  = useState(null)
   const [watering,     setWatering]     = useState(false)
   const [waterError,   setWaterError]   = useState(null)
 
+  const [isEditing,    setIsEditing]    = useState(false)
+  const [editName,     setEditName]     = useState(plant.nickname)
+  const [renaming,     setRenaming]     = useState(false)
+  const [renameError,  setRenameError]  = useState(null)
+  const inputRef = useRef(null)
+
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
+
+  useEffect(() => {
+    if (isEditing) inputRef.current?.focus()
+  }, [isEditing])
+
+  function startEditing() {
+    setEditName(plant.nickname)
+    setRenameError(null)
+    setIsEditing(true)
+  }
+
+  function cancelEditing() {
+    setIsEditing(false)
+    setRenameError(null)
+  }
+
+  async function handleRename() {
+    const trimmed = editName.trim()
+    if (!trimmed || trimmed === plant.nickname) {
+      setIsEditing(false)
+      return
+    }
+
+    if (isDemo) {
+      onRename(plant.id, trimmed)
+      setIsEditing(false)
+      return
+    }
+
+    setRenaming(true)
+    setRenameError(null)
+    try {
+      const res = await fetch(`${API_BASE}/api/plants/${plant.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname: trimmed }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Rename failed')
+      onRename(plant.id, data.nickname)
+      setIsEditing(false)
+    } catch (err) {
+      setRenameError(err.message)
+    } finally {
+      setRenaming(false)
+    }
+  }
 
   async function handleWater() {
     if (isDemo) {
@@ -73,7 +127,37 @@ export default function PlantModal({ plant, onClose, onDelete, onWater, isDemo }
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
 
-        <h2 className="modal-title">{plant.nickname}</h2>
+        {isEditing ? (
+          <div className="modal-title-edit">
+            <input
+              ref={inputRef}
+              className="modal-title-input"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleRename()
+                if (e.key === 'Escape') cancelEditing()
+              }}
+              maxLength={60}
+              aria-label="Plant name"
+            />
+            <div className="modal-title-edit-actions">
+              <button className="btn-rename-cancel" onClick={cancelEditing} disabled={renaming}>Cancel</button>
+              <button className="btn-rename-save" onClick={handleRename} disabled={renaming || !editName.trim()}>
+                {renaming ? 'Saving…' : 'Save'}
+              </button>
+            </div>
+            {renameError && <p className="rename-error">{renameError}</p>}
+          </div>
+        ) : (
+          <div className="modal-title-row">
+            <h2 className="modal-title">{plant.nickname}</h2>
+            <button className="btn-rename-trigger" onClick={startEditing} aria-label="Rename plant">
+              <Pencil size={15} />
+            </button>
+          </div>
+        )}
+
         <p className="modal-species">{plant.species}</p>
 
         <dl className="modal-details">

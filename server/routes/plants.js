@@ -165,6 +165,30 @@ router.delete('/:id', async (req, res) => {
   res.status(204).send();
 });
 
+// PATCH /api/plants/:id — update editable fields (currently: nickname)
+router.patch('/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nickname } = req.body;
+
+  if (!nickname || typeof nickname !== 'string' || !nickname.trim()) {
+    return res.status(400).json({ error: 'nickname is required' });
+  }
+
+  const { data, error } = await supabase
+    .from('plants')
+    .update({ nickname: nickname.trim() })
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error('[Rename] DB error:', error.message);
+    return res.status(500).json({ error: error.message });
+  }
+
+  res.json(data);
+});
+
 // PATCH /api/plants/:id/water — record that plant was watered today
 router.patch('/:id/water', async (req, res) => {
   const { id } = req.params;
