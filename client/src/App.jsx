@@ -5,6 +5,7 @@ import PlantForm from './components/PlantForm'
 import PlantShelf from './components/PlantShelf'
 import WelcomeModal from './components/WelcomeModal'
 import SettingsModal from './components/SettingsModal'
+import UpdateToast from './components/UpdateToast'
 import { API_BASE } from './lib/api'
 import './App.css'
 
@@ -76,7 +77,10 @@ function App() {
   }
 
   if (!email && !isDemo) return (
-    <LoginGate onLogin={handleLogin} onDemoMode={handleDemoMode} />
+    <>
+      <LoginGate onLogin={handleLogin} onDemoMode={handleDemoMode} />
+      <UpdateToast />
+    </>
   )
 
   return (
@@ -144,6 +148,8 @@ function App() {
           onPromptUsed={() => setDeferredPrompt(null)}
         />
       )}
+
+      <UpdateToast />
     </div>
   )
 }
