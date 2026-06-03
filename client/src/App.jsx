@@ -1,9 +1,10 @@
-import { useState } from 'react'
-import { LogOut, Camera, Plus } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { LogOut, Camera, Plus, Settings } from 'lucide-react'
 import LoginGate from './components/LoginGate'
 import PlantForm from './components/PlantForm'
 import PlantShelf from './components/PlantShelf'
 import WelcomeModal from './components/WelcomeModal'
+import SettingsModal from './components/SettingsModal'
 import { API_BASE } from './lib/api'
 import './App.css'
 
@@ -18,6 +19,18 @@ function App() {
   const [demoPlants, setDemoPlants]     = useState(null)
   const [demoNewPlant, setDemoNewPlant] = useState(null)
   const [showWelcome, setShowWelcome]   = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
+  const [deferredPrompt, setDeferredPrompt] = useState(null)
+
+  // Capture the browser's native install prompt so we can trigger it on demand
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault()
+      setDeferredPrompt(e)
+    }
+    window.addEventListener('beforeinstallprompt', handler)
+    return () => window.removeEventListener('beforeinstallprompt', handler)
+  }, [])
 
   function handleLogin(e) {
     localStorage.setItem(STORAGE_KEY, e)
@@ -69,8 +82,19 @@ function App() {
   return (
     <div className="app">
       <header className="app-header">
-        {isDemo && <span className="demo-badge">Demo</span>}
+        <div className="header-left">
+          <button
+            className="btn-settings"
+            onClick={() => setShowSettings(true)}
+            aria-label="Settings"
+          >
+            <Settings size={18} />
+          </button>
+          {isDemo && <span className="demo-badge">Demo</span>}
+        </div>
+
         <h1 className="app-title">My Garden</h1>
+
         <button className="btn-logout" onClick={handleLogout} aria-label="Log out">
           <LogOut size={18} />
         </button>
@@ -112,6 +136,14 @@ function App() {
       )}
 
       {showWelcome && <WelcomeModal onClose={() => setShowWelcome(false)} />}
+
+      {showSettings && (
+        <SettingsModal
+          onClose={() => setShowSettings(false)}
+          deferredPrompt={deferredPrompt}
+          onPromptUsed={() => setDeferredPrompt(null)}
+        />
+      )}
     </div>
   )
 }

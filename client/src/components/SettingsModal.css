@@ -1,0 +1,230 @@
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 300;
+  padding: 20px;
+}
+
+.settings-card {
+  background: linear-gradient(160deg, #162416, #0f1c10);
+  border: 1px solid rgba(116, 198, 157, 0.2);
+  border-radius: 24px;
+  padding: 32px 28px 28px;
+  width: 100%;
+  max-width: 380px;
+  position: relative;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.65);
+  animation: settings-in 0.2s ease;
+}
+
+@keyframes settings-in {
+  from { transform: scale(0.93) translateY(10px); opacity: 0; }
+  to   { transform: scale(1)    translateY(0);    opacity: 1; }
+}
+
+.settings-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: rgba(200, 230, 196, 0.45);
+  cursor: pointer;
+  padding: 4px 7px;
+  border-radius: 6px;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
+
+  &:hover {
+    color: #c8e6c4;
+    background: rgba(255, 255, 255, 0.07);
+  }
+}
+
+/* ── Header ──────────────────────────────────── */
+.settings-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.settings-icon {
+  font-size: 2.2rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.settings-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+  color: #c8e6c4;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+/* ── Section ─────────────────────────────────── */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.settings-section-label {
+  margin: 0 0 2px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(116, 198, 157, 0.5);
+}
+
+/* ── Install button row ──────────────────────── */
+.settings-install-btn {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(82, 183, 136, 0.08);
+  border: 1.5px solid rgba(82, 183, 136, 0.22);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: rgba(82, 183, 136, 0.15);
+    border-color: rgba(82, 183, 136, 0.4);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &.is-installed {
+    background: rgba(82, 183, 136, 0.05);
+    border-color: rgba(82, 183, 136, 0.12);
+    opacity: 0.6;
+  }
+}
+
+.sib-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(82, 183, 136, 0.14);
+  border: 1px solid rgba(82, 183, 136, 0.25);
+  color: #74c69d;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sib-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sib-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: #c8e6c4;
+}
+
+.sib-sub {
+  font-size: 0.78rem;
+  color: rgba(200, 230, 196, 0.45);
+}
+
+/* ── Step-by-step guide ──────────────────────── */
+.install-guide {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.install-guide-heading {
+  margin: 0 0 4px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(200, 230, 196, 0.6);
+}
+
+.ig-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.ig-num {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(82, 183, 136, 0.16);
+  border: 1.5px solid rgba(82, 183, 136, 0.35);
+  color: #74c69d;
+  font-size: 0.78rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+}
+
+.ig-step strong {
+  font-size: 0.875rem;
+  color: #c8e6c4;
+  display: block;
+  margin-bottom: 3px;
+  font-weight: 600;
+}
+
+.ig-step p {
+  font-size: 0.82rem;
+  color: rgba(200, 230, 196, 0.58);
+  margin: 0;
+  line-height: 1.55;
+}
+
+.ig-step em {
+  color: #74c69d;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.inline-tag {
+  display: inline-block;
+  background: rgba(116, 198, 157, 0.1);
+  border: 1px solid rgba(116, 198, 157, 0.22);
+  border-radius: 5px;
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  color: #74c69d;
+  font-family: monospace;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.ig-back {
+  align-self: flex-start;
+  background: none;
+  border: none;
+  color: rgba(200, 230, 196, 0.45);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.15s;
+  margin-top: 2px;
+
+  &:hover { color: #c8e6c4; }
+}
