@@ -207,6 +207,27 @@
   margin: 0 0 10px;
 }
 
+/* 🩺 Health Check — full-width green outline, sits above the water/delete row */
+.btn-checkup {
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 10px;
+  background: #f0faf4;
+  border: 1.5px solid #74c69d;
+  border-radius: 8px;
+  color: #1b4332;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+
+  &:hover:not(:disabled) {
+    background: #d8f3dc;
+    border-color: #40916c;
+  }
+  &:disabled { opacity: 0.6; cursor: not-allowed; }
+}
+
 /* Side-by-side action row */
 .footer-actions {
   display: flex;

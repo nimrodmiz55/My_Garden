@@ -25,6 +25,44 @@ The JSON must contain exactly these three fields:
 
 Example: {"species":"Monstera Deliciosa","size":"medium","wateringIntervalDays":7}`;
 
+const SIZE_RANK = { small: 0, medium: 1, large: 2 };
+
+// Build a checkup prompt that includes the plant's current care data as context.
+function buildCheckupPrompt(plant, daysSinceWatered) {
+  return `You are a plant care expert. The attached photo shows a "${plant.species}" plant right now. Its current care data in the app is:
+- Recorded size: ${plant.size}
+- Watering interval: every ${plant.watering_interval_days} day(s)
+- Last watered: ${plant.last_watered_date} (${daysSinceWatered} day(s) ago)
+
+Analyze the photo together with this data and respond with ONLY a valid JSON object — no markdown, no explanation. The JSON must contain exactly these fields:
+- "size": the plant's current apparent size, one of exactly "small", "medium", or "large"
+- "wateringIntervalDays": an integer — the recommended number of days between waterings for this plant going forward, at its current size and condition
+- "condition": one of exactly "healthy", "underwatered", or "overwatered", describing the plant's current state
+- "pauseWateringDays": an integer >= 0 — if the plant looks overwatered, how many days to hold off ALL watering before resuming the normal schedule; otherwise 0
+- "message": one or two short sentences describing what you see and the recommended action
+
+Example: {"size":"medium","wateringIntervalDays":5,"condition":"overwatered","pauseWateringDays":7,"message":"Lower leaves are yellowing from too much water. Let the soil dry out for a week, then water every 5 days."}`;
+}
+
+function daysBetween(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const then = new Date(y, m - 1, d);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return Math.max(0, Math.round((today - then) / 86400000));
+}
+
+function addDaysISO(days) {
+  const date = new Date();
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + days);
+  // Format from local components (avoid toISOString's UTC shift).
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`; // YYYY-MM-DD
+}
+
 // GET /api/plants?email= — fetch plants for a specific owner
 router.get('/', async (req, res) => {
   const { email } = req.query;
@@ -194,9 +232,10 @@ router.patch('/:id/water', async (req, res) => {
   const { id } = req.params;
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD UTC
 
+  // Watering also clears any active "watering pause" (e.g. after an over-watering checkup).
   const { data, error } = await supabase
     .from('plants')
-    .update({ last_watered_date: today })
+    .update({ last_watered_date: today, water_pause_until: null })
     .eq('id', id)
     .select()
     .single();
@@ -207,6 +246,120 @@ router.patch('/:id/water', async (req, res) => {
   }
 
   res.json(data);
+});
+
+// POST /api/plants/:id/checkup — analyze a fresh photo + care data, then update the plant
+router.post('/:id/checkup', upload.single('photo'), async (req, res) => {
+  const { id } = req.params;
+  const photo = req.file;
+
+  if (!photo) return res.status(400).json({ error: 'A plant photo is required' });
+
+  // 1. Load the plant for context
+  const { data: plant, error: fetchError } = await supabase
+    .from('plants')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (fetchError || !plant) {
+    return res.status(404).json({ error: 'Plant not found' });
+  }
+
+  // 2. Ask Gemini to assess the plant against its current care data
+  let analysis;
+  let rawGeminiText = null;
+  try {
+    const daysSinceWatered = daysBetween(plant.last_watered_date);
+    console.log('[Checkup] Sending request — plant:', plant.nickname, 'daysSinceWatered:', daysSinceWatered);
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: [
+        {
+          parts: [
+            {
+              inlineData: {
+                mimeType: photo.mimetype,
+                data: photo.buffer.toString('base64'),
+              },
+            },
+            { text: buildCheckupPrompt(plant, daysSinceWatered) },
+          ],
+        },
+      ],
+      config: { responseMimeType: 'application/json' },
+    });
+
+    rawGeminiText = response.text;
+    console.log('[Checkup] Raw response text:', rawGeminiText);
+
+    analysis = JSON.parse(rawGeminiText);
+
+    const validSize = ['small', 'medium', 'large'].includes(analysis.size);
+    const validCondition = ['healthy', 'underwatered', 'overwatered'].includes(analysis.condition);
+    if (
+      !validSize ||
+      !Number.isInteger(analysis.wateringIntervalDays) || analysis.wateringIntervalDays < 1 ||
+      !validCondition ||
+      !Number.isInteger(analysis.pauseWateringDays) || analysis.pauseWateringDays < 0 ||
+      typeof analysis.message !== 'string'
+    ) {
+      console.error('[Checkup] Unexpected shape:', analysis);
+      throw new Error('Unexpected Gemini response shape');
+    }
+
+    console.log('[Checkup] Parsed analysis:', analysis);
+  } catch (err) {
+    console.error('[Checkup] ERROR name    :', err.name);
+    console.error('[Checkup] ERROR message :', err.message);
+    console.error('[Checkup] Raw text was  :', rawGeminiText);
+    return res.status(502).json({ error: 'Failed to analyze plant image. Please try again.' });
+  }
+
+  // 3. Derive the outcome status and the DB update (image is NOT stored)
+  const previousSize = plant.size;
+  const hasGrown = SIZE_RANK[analysis.size] > SIZE_RANK[previousSize];
+
+  let status;
+  if (analysis.condition === 'overwatered') status = 'overwatered';
+  else if (analysis.condition === 'underwatered') status = 'underwatered';
+  else if (hasGrown) status = 'grew';
+  else status = 'great';
+
+  const waterPauseUntil = status === 'overwatered' ? addDaysISO(analysis.pauseWateringDays) : null;
+
+  const updatePayload = {
+    size: analysis.size,
+    watering_interval_days: analysis.wateringIntervalDays,
+    water_pause_until: waterPauseUntil,
+  };
+
+  const { data: updated, error: updateError } = await supabase
+    .from('plants')
+    .update(updatePayload)
+    .eq('id', id)
+    .select()
+    .single();
+
+  if (updateError) {
+    console.error('[Checkup] DB update error:', updateError.message);
+    return res.status(500).json({ error: 'Failed to save checkup results.' });
+  }
+
+  res.json({
+    plant: updated,
+    checkup: {
+      status,
+      hasGrown,
+      previousSize,
+      size: analysis.size,
+      wateringIntervalDays: analysis.wateringIntervalDays,
+      pauseWateringDays: status === 'overwatered' ? analysis.pauseWateringDays : 0,
+      waterPauseUntil,
+      message: analysis.message,
+    },
+  });
 });
 
 module.exports = router;

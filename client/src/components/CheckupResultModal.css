@@ -1,0 +1,98 @@
+.checkup-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200; /* above PlantModal (100) */
+  padding: 20px;
+}
+
+.checkup-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 30px 26px 24px;
+  width: 100%;
+  max-width: 360px;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  border-top: 5px solid #40916c;
+  animation: checkup-in 0.18s ease;
+}
+
+.checkup-card--great     { border-top-color: #40916c; }
+.checkup-card--attention { border-top-color: #f59e0b; }
+
+@keyframes checkup-in {
+  from { transform: scale(0.94); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+
+.checkup-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  color: #6b7280;
+  cursor: pointer;
+  line-height: 1;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s;
+
+  &:hover { color: #1b4332; }
+}
+
+.checkup-title {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  color: #1b4332;
+}
+
+.checkup-line {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1b4332;
+  line-height: 1.5;
+}
+
+.checkup-message {
+  margin: 14px 0 0;
+  font-size: 0.88rem;
+  color: #4b5563;
+  line-height: 1.55;
+  background: #f0faf4;
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.checkup-card--attention .checkup-message {
+  background: #fff7ed;
+}
+
+.checkup-ok {
+  display: block;
+  width: 100%;
+  margin-top: 22px;
+  padding: 12px;
+  background: #40916c;
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+
+  &:hover { background: #2d6a4f; }
+}
+
+.checkup-card--attention .checkup-ok {
+  background: #f59e0b;
+
+  &:hover { background: #d97706; }
+}

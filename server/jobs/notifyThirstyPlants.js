@@ -14,11 +14,20 @@ async function recordRun() {
 }
 
 function isThirsty(plant) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // A plant under an active watering pause (e.g. after an over-watering checkup)
+  // is never thirsty until the pause date passes.
+  if (plant.water_pause_until) {
+    const [py, pm, pd] = plant.water_pause_until.split('-').map(Number);
+    const pauseUntil = new Date(py, pm - 1, pd);
+    if (today < pauseUntil) return false;
+  }
+
   const [y, m, d] = plant.last_watered_date.split('-').map(Number);
   const nextWatering = new Date(y, m - 1, d);
   nextWatering.setDate(nextWatering.getDate() + plant.watering_interval_days);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
   return today >= nextWatering;
 }
 
@@ -34,7 +43,7 @@ async function notifyThirstyPlants() {
 
   const { data: plants, error } = await supabase
     .from('plants')
-    .select('id, nickname, last_watered_date, watering_interval_days, owner_email')
+    .select('id, nickname, last_watered_date, watering_interval_days, owner_email, water_pause_until')
     .not('owner_email', 'is', null);
 
   if (error) {

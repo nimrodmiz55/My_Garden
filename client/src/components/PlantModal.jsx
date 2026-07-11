@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pencil } from 'lucide-react'
+import imageCompression from 'browser-image-compression'
 import { API_BASE } from '../lib/api'
+import CheckupResultModal from './CheckupResultModal'
 import './PlantModal.css'
+
+const COMPRESSION_OPTIONS = {
+  maxSizeMB: 0.38,        // target < 400 KB
+  maxWidthOrHeight: 1200,
+  useWebWorker: true,
+}
 
 function addDays(dateStr, days) {
   const [y, m, d] = dateStr.split('-').map(Number)
@@ -15,7 +23,15 @@ function fmt(dateStr) {
   return new Date(y, m - 1, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
-export default function PlantModal({ plant, onClose, onDelete, onWater, onRename, isDemo }) {
+function isFutureDate(dateStr) {
+  const [y, m, d] = dateStr.split('-').map(Number)
+  const target = new Date(y, m - 1, d)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return today < target
+}
+
+export default function PlantModal({ plant, onClose, onDelete, onWater, onRename, onCheckup, isDemo }) {
   const [confirming,   setConfirming]   = useState(false)
   const [deleting,     setDeleting]     = useState(false)
   const [deleteError,  setDeleteError]  = useState(null)
@@ -27,6 +43,12 @@ export default function PlantModal({ plant, onClose, onDelete, onWater, onRename
   const [renaming,     setRenaming]     = useState(false)
   const [renameError,  setRenameError]  = useState(null)
   const inputRef = useRef(null)
+
+  const [checkupState,  setCheckupState]  = useState('idle') // 'idle' | 'compressing' | 'analyzing' | 'error'
+  const [checkupResult, setCheckupResult] = useState(null)
+  const [checkupError,  setCheckupError]  = useState(null)
+  const checkupInputRef = useRef(null)
+  const checkupBusy = checkupState === 'compressing' || checkupState === 'analyzing'
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose() }
@@ -99,6 +121,50 @@ export default function PlantModal({ plant, onClose, onDelete, onWater, onRename
     }
   }
 
+  async function handleCheckupPhoto(e) {
+    const file = e.target.files[0]
+    e.target.value = '' // allow re-selecting the same file later
+    if (!file) return
+
+    setCheckupError(null)
+
+    // Demo mode: return a canned "great" result without hitting the API
+    if (isDemo) {
+      setCheckupResult({
+        status: 'great',
+        message: 'This is a demo checkup — your plant looks happy!',
+      })
+      return
+    }
+
+    setCheckupState('compressing')
+    let photo
+    try {
+      photo = await imageCompression(file, COMPRESSION_OPTIONS)
+    } catch {
+      photo = file // fall back to the original on compression failure
+    }
+
+    setCheckupState('analyzing')
+    try {
+      const formData = new FormData()
+      formData.append('photo', photo)
+      const res = await fetch(`${API_BASE}/api/plants/${plant.id}/checkup`, {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Checkup failed')
+
+      onCheckup?.(plant.id, data.plant)
+      setCheckupResult(data.checkup)
+      setCheckupState('idle')
+    } catch (err) {
+      setCheckupError(err.message)
+      setCheckupState('error')
+    }
+  }
+
   async function handleDelete() {
     if (isDemo) {
       onDelete(plant.id)
@@ -120,9 +186,12 @@ export default function PlantModal({ plant, onClose, onDelete, onWater, onRename
     }
   }
 
-  const nextWatering = addDays(plant.last_watered_date, plant.watering_interval_days)
+  const nextWatering = plant.water_pause_until && isFutureDate(plant.water_pause_until)
+    ? fmt(plant.water_pause_until)
+    : addDays(plant.last_watered_date, plant.watering_interval_days)
 
   return (
+    <>
     <div className="modal-backdrop" onClick={onClose} role="dialog" aria-modal="true" aria-label={plant.nickname}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
         <button className="modal-close" onClick={onClose} aria-label="Close">✕</button>
@@ -180,27 +249,48 @@ export default function PlantModal({ plant, onClose, onDelete, onWater, onRename
         </dl>
 
         <div className="modal-footer">
-          {(deleteError || waterError) && (
-            <p className="footer-error">{deleteError || waterError}</p>
+          {(deleteError || waterError || checkupError) && (
+            <p className="footer-error">{deleteError || waterError || checkupError}</p>
           )}
 
           {!confirming ? (
-            <div className="footer-actions">
+            <>
               <button
-                className="btn-water"
-                onClick={handleWater}
-                disabled={watering || deleting}
+                className="btn-checkup"
+                onClick={() => checkupInputRef.current?.click()}
+                disabled={watering || deleting || checkupBusy}
               >
-                {watering ? 'Updating…' : '💧 Just Watered'}
+                {checkupState === 'compressing'
+                  ? 'Optimizing…'
+                  : checkupState === 'analyzing'
+                    ? 'Analyzing…'
+                    : '🩺 Health Check'}
               </button>
-              <button
-                className="btn-delete"
-                onClick={() => setConfirming(true)}
-                disabled={watering}
-              >
-                Delete
-              </button>
-            </div>
+              <input
+                ref={checkupInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleCheckupPhoto}
+                hidden
+              />
+              <div className="footer-actions">
+                <button
+                  className="btn-water"
+                  onClick={handleWater}
+                  disabled={watering || deleting || checkupBusy}
+                >
+                  {watering ? 'Updating…' : '💧 Just Watered'}
+                </button>
+                <button
+                  className="btn-delete"
+                  onClick={() => setConfirming(true)}
+                  disabled={watering || checkupBusy}
+                >
+                  Delete
+                </button>
+              </div>
+            </>
           ) : (
             <div className="delete-confirm">
               <span>Remove &ldquo;{plant.nickname}&rdquo;?</span>
@@ -225,5 +315,14 @@ export default function PlantModal({ plant, onClose, onDelete, onWater, onRename
         </div>
       </div>
     </div>
+
+    {checkupResult && (
+      <CheckupResultModal
+        result={checkupResult}
+        nickname={plant.nickname}
+        onClose={() => setCheckupResult(null)}
+      />
+    )}
+    </>
   )
 }

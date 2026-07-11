@@ -7,11 +7,18 @@ const DURATIONS = [3.4, 4.0, 3.7, 4.4, 3.2, 4.8]
 const DELAYS    = [0,   0.6, 1.3, 0.9, 2.0, 1.6]
 
 function isThirsty(plant) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  // A plant under an active watering pause (after an over-watering checkup) isn't thirsty yet.
+  if (plant.water_pause_until) {
+    const [py, pm, pd] = plant.water_pause_until.split('-').map(Number)
+    if (today < new Date(py, pm - 1, pd)) return false
+  }
+
   const [y, m, d] = plant.last_watered_date.split('-').map(Number)
   const nextWatering = new Date(y, m - 1, d)
   nextWatering.setDate(nextWatering.getDate() + plant.watering_interval_days)
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
   return today >= nextWatering
 }
 
@@ -144,6 +151,18 @@ export default function PlantShelf({ refresh, email, isDemo, demoPlants, demoNew
               prev.map((p) => p.id === id ? { ...p, nickname: newName } : p)
             )
             setSelected((prev) => prev ? { ...prev, nickname: newName } : null)
+          }}
+          onCheckup={(id, updated) => {
+            // Merge the checkup-updated fields; keep the modal open to show the result.
+            const patch = {
+              size: updated.size,
+              watering_interval_days: updated.watering_interval_days,
+              water_pause_until: updated.water_pause_until,
+            }
+            setPlants((prev) =>
+              prev.map((p) => p.id === id ? { ...p, ...patch } : p)
+            )
+            setSelected((prev) => prev ? { ...prev, ...patch } : null)
           }}
         />
       )}

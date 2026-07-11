@@ -9,6 +9,7 @@ CREATE TABLE IF NOT EXISTS plants (
   watering_interval_days INTEGER     NOT NULL,
   image_url              TEXT,
   owner_email            TEXT,
+  water_pause_until      DATE,
   created_at             TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
