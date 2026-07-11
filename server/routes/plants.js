@@ -40,8 +40,9 @@ Analyze the photo together with this data and respond with ONLY a valid JSON obj
 - "condition": one of exactly "healthy", "underwatered", or "overwatered", describing the plant's current state
 - "pauseWateringDays": an integer >= 0 — if the plant looks overwatered, how many days to hold off ALL watering before resuming the normal schedule; otherwise 0
 - "message": one or two short sentences describing what you see and the recommended action
+- "homeRemedy": if "condition" is NOT "healthy", a short surprising traditional "grandma's remedy" (a simple home remedy using common household items) the owner can try; if "condition" is "healthy", an empty string ""
 
-Example: {"size":"medium","wateringIntervalDays":5,"condition":"overwatered","pauseWateringDays":7,"message":"Lower leaves are yellowing from too much water. Let the soil dry out for a week, then water every 5 days."}`;
+Example: {"size":"medium","wateringIntervalDays":5,"condition":"overwatered","pauseWateringDays":7,"message":"Lower leaves are yellowing from too much water. Let the soil dry out for a week, then water every 5 days.","homeRemedy":"Sprinkle a little cinnamon on the soil — it's a natural antifungal that helps roots recover from overwatering."}`;
 }
 
 function daysBetween(dateStr) {
@@ -358,6 +359,10 @@ router.post('/:id/checkup', upload.single('photo'), async (req, res) => {
       pauseWateringDays: status === 'overwatered' ? analysis.pauseWateringDays : 0,
       waterPauseUntil,
       message: analysis.message,
+      // "Grandma's remedy" — surfaced only for unhealthy plants; never stored in the DB.
+      homeRemedy: (status === 'underwatered' || status === 'overwatered') && typeof analysis.homeRemedy === 'string'
+        ? analysis.homeRemedy
+        : '',
     },
   });
 });

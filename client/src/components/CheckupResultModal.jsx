@@ -54,6 +54,12 @@ export default function CheckupResultModal({ result, nickname, onClose }) {
 
         {result.message && <p className="checkup-message">{result.message}</p>}
 
+        {result.homeRemedy && (
+          <p className="checkup-remedy">
+            💡 Grandma's remedy — we recommend you try: {result.homeRemedy}
+          </p>
+        )}
+
         <button className="checkup-ok" onClick={onClose} type="button">Got it</button>
       </div>
     </div>
